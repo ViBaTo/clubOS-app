@@ -1,0 +1,1217 @@
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { Sidebar } from "@/src/components/layout/sidebar"
+import { Navbar } from "@/src/components/layout/navbar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
+import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { toast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
+
+const MaterialIcon = ({ name, className = "" }: { name: string; className?: string }) => (
+  <span className={cn("material-symbols-outlined", className)}>{name}</span>
+)
+
+interface PaymentRecord {
+  id: string
+  fecha: string
+  metodo: "Efectivo" | "Transferencia" | "Tarjeta" | "Bizum" | "PayPal"
+  cantidad: number
+  estado: "Completado" | "Pendiente" | "Fallido"
+  comprobante?: string
+  verificado: boolean
+}
+
+interface ClassPackage {
+  id: string
+  nombre: string
+  fechaCompra: string
+  fechaVencimiento: string
+  clasesTotales: number
+  clasesUtilizadas: number
+  estado: "Activo" | "Vencido" | "Agotado"
+  precio: number
+  instructor?: string
+  tipoClase: "Grupal" | "Individual" | "Academia"
+  estadoPago: "Pagado" | "Pendiente" | "Vencido"
+  metodoPago?: "Efectivo" | "Transferencia" | "Tarjeta" | "Bizum" | "PayPal"
+  planPago: "Completo" | "Cuotas"
+  proximoPago?: string
+  pagosRealizados: PaymentRecord[]
+  autoRenovacion: boolean
+}
+
+interface AttendanceRecord {
+  id: string
+  fecha: string
+  instructor: string
+  tipoClase: "Grupal" | "Individual" | "Academia"
+  paqueteId: string
+  paqueteNombre: string
+}
+
+interface ClientProfile {
+  id: string
+  nombre: string
+  email: string
+  telefono: string
+  fechaNacimiento: string
+  dni: string
+  direccion: string
+  contactoEmergencia: string
+  categoria: "Principiante" | "Intermedio" | "Avanzado" | "Competición" | "Veterano"
+  estado: "Activo" | "Inactivo"
+  avatar?: string
+  fechaRegistro: string
+  instructorPreferido: string
+  horarioHabitual: string
+  rating: number
+  paquetes: ClassPackage[]
+  historialAsistencia: AttendanceRecord[]
+}
+
+const mockClient: ClientProfile = {
+  id: "1",
+  nombre: "Carlos Rodríguez García",
+  email: "carlos.rodriguez@email.com",
+  telefono: "+34 612 345 678",
+  fechaNacimiento: "1985-03-15",
+  dni: "12345678A",
+  direccion: "Calle Mayor 123, 28001 Madrid",
+  contactoEmergencia: "María Rodríguez - +34 623 456 789",
+  categoria: "Avanzado",
+  estado: "Activo",
+  fechaRegistro: "2024-01-15",
+  instructorPreferido: "Ana García",
+  horarioHabitual: "Martes y Jueves 18:00-19:30",
+  rating: 4.8,
+  paquetes: [
+    {
+      id: "1",
+      nombre: "Paquete 10 Clases",
+      fechaCompra: "2024-11-01",
+      fechaVencimiento: "2025-02-01",
+      clasesTotales: 10,
+      clasesUtilizadas: 6,
+      estado: "Activo",
+      precio: 180,
+      instructor: "Ana García",
+      tipoClase: "Grupal",
+      estadoPago: "Pagado",
+      metodoPago: "Tarjeta",
+      planPago: "Completo",
+      pagosRealizados: [
+        {
+          id: "1",
+          fecha: "2024-11-01",
+          metodo: "Tarjeta",
+          cantidad: 180,
+          estado: "Completado",
+          comprobante: "receipt_001.pdf",
+          verificado: true,
+        },
+      ],
+      autoRenovacion: true,
+    },
+    {
+      id: "2",
+      nombre: "Pack Iniciación",
+      fechaCompra: "2024-10-15",
+      fechaVencimiento: "2024-12-15",
+      clasesTotales: 4,
+      clasesUtilizadas: 4,
+      estado: "Agotado",
+      precio: 80,
+      instructor: "Carlos Mendez",
+      tipoClase: "Individual",
+      estadoPago: "Pendiente",
+      metodoPago: "Efectivo",
+      planPago: "Cuotas",
+      proximoPago: "2024-12-01",
+      pagosRealizados: [
+        {
+          id: "2",
+          fecha: "2024-10-15",
+          metodo: "Efectivo",
+          cantidad: 40,
+          estado: "Completado",
+          verificado: true,
+        },
+      ],
+      autoRenovacion: false,
+    },
+    {
+      id: "3",
+      nombre: "Bono Mensual",
+      fechaCompra: "2024-09-01",
+      fechaVencimiento: "2024-10-01",
+      clasesTotales: 8,
+      clasesUtilizadas: 5,
+      estado: "Vencido",
+      precio: 120,
+      tipoClase: "Academia",
+      estadoPago: "Vencido",
+      planPago: "Completo",
+      pagosRealizados: [],
+      autoRenovacion: false,
+    },
+  ],
+  historialAsistencia: [
+    {
+      id: "1",
+      fecha: "2024-11-20",
+      instructor: "Ana García",
+      tipoClase: "Grupal",
+      paqueteId: "1",
+      paqueteNombre: "Paquete 10 Clases",
+    },
+    {
+      id: "2",
+      fecha: "2024-11-18",
+      instructor: "Ana García",
+      tipoClase: "Grupal",
+      paqueteId: "1",
+      paqueteNombre: "Paquete 10 Clases",
+    },
+    {
+      id: "3",
+      fecha: "2024-11-15",
+      instructor: "Carlos Mendez",
+      tipoClase: "Individual",
+      paqueteId: "2",
+      paqueteNombre: "Pack Iniciación",
+    },
+  ],
+}
+
+export default function ClientProfilePage() {
+  const params = useParams()
+  const router = useRouter()
+  const [client, setClient] = useState<ClientProfile>(mockClient)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [hasChanges, setHasChanges] = useState(false)
+  const [attendanceModal, setAttendanceModal] = useState({
+    isOpen: false,
+    packageId: "",
+    date: new Date().toISOString().split("T")[0],
+    instructor: "",
+    comments: "",
+  })
+
+  const [paymentModal, setPaymentModal] = useState({
+    isOpen: false,
+    packageId: "",
+    metodo: "" as "Efectivo" | "Transferencia" | "Tarjeta" | "Bizum" | "PayPal" | "",
+    cantidad: 0,
+    comprobante: null as File | null,
+    notas: "",
+  })
+
+  const handleInputChange = (field: keyof ClientProfile, value: string | boolean) => {
+    setClient((prev) => ({ ...prev, [field]: value }))
+    setHasChanges(true)
+  }
+
+  const handleSave = async () => {
+    setIsSaving(true)
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    setIsSaving(false)
+    setHasChanges(false)
+    setIsEditing(false)
+    toast({
+      title: "Cambios guardados",
+      description: "El perfil del cliente ha sido actualizado correctamente.",
+    })
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    setHasChanges(false)
+    setClient(mockClient)
+  }
+
+  const handleDelete = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    toast({
+      title: "Cliente eliminado",
+      description: "El cliente ha sido eliminado del sistema.",
+      variant: "destructive",
+    })
+    router.push("/clientes")
+  }
+
+  const handleOpenAttendanceModal = (packageId: string) => {
+    setAttendanceModal({
+      isOpen: true,
+      packageId,
+      date: new Date().toISOString().split("T")[0],
+      instructor: "",
+      comments: "",
+    })
+  }
+
+  const handleMarkAttendance = async () => {
+    if (!attendanceModal.instructor) {
+      toast({
+        title: "Error",
+        description: "Por favor selecciona un instructor.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
+    toast({
+      title: "Asistencia marcada",
+      description: "La clase ha sido marcada como completada correctamente.",
+    })
+
+    // Reset and close modal
+    setAttendanceModal({
+      isOpen: false,
+      packageId: "",
+      date: new Date().toISOString().split("T")[0],
+      instructor: "",
+      comments: "",
+    })
+  }
+
+  const getStatusBadgeColor = (estado: string) => {
+    return estado === "Activo"
+      ? "bg-green-100 text-green-800 hover:bg-green-200"
+      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+  }
+
+  const getPackageStatusColor = (estado: string) => {
+    switch (estado) {
+      case "Activo":
+        return "bg-green-100 text-green-800 hover:bg-green-200"
+      case "Vencido":
+        return "bg-red-100 text-red-800 hover:bg-red-200"
+      case "Agotado":
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200"
+      default:
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200"
+    }
+  }
+
+  const getPaymentStatusColor = (estado: string) => {
+    switch (estado) {
+      case "Pagado":
+        return "bg-green-100 text-green-800 hover:bg-green-200"
+      case "Pendiente":
+        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+      case "Vencido":
+        return "bg-red-100 text-red-800 hover:bg-red-200"
+      default:
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200"
+    }
+  }
+
+  const getPaymentStatusIcon = (estado: string) => {
+    switch (estado) {
+      case "Pagado":
+        return "check_circle"
+      case "Pendiente":
+        return "schedule"
+      case "Vencido":
+        return "error"
+      default:
+        return "help"
+    }
+  }
+
+  const getPaymentMethodIcon = (metodo: string) => {
+    switch (metodo) {
+      case "Efectivo":
+        return "payments"
+      case "Transferencia":
+        return "account_balance"
+      case "Tarjeta":
+        return "credit_card"
+      case "Bizum":
+        return "smartphone"
+      case "PayPal":
+        return "account_balance_wallet"
+      default:
+        return "payment"
+    }
+  }
+
+  const handleOpenPaymentModal = (packageId: string) => {
+    const paquete = client.paquetes.find((p) => p.id === packageId)
+    setPaymentModal({
+      isOpen: true,
+      packageId,
+      metodo: "",
+      cantidad: paquete?.precio || 0,
+      comprobante: null,
+      notas: "",
+    })
+  }
+
+  const handleProcessPayment = async () => {
+    if (!paymentModal.metodo) {
+      toast({
+        title: "Error",
+        description: "Por favor selecciona un método de pago.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
+    toast({
+      title: "Pago procesado",
+      description: "El pago ha sido registrado correctamente.",
+    })
+
+    // Reset and close modal
+    setPaymentModal({
+      isOpen: false,
+      packageId: "",
+      metodo: "",
+      cantidad: 0,
+      comprobante: null,
+      notas: "",
+    })
+  }
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setPaymentModal((prev) => ({ ...prev, comprobante: file }))
+    }
+  }
+
+  const getInitials = (nombre: string) => {
+    return nombre
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase()
+  }
+
+  const getTotalClassesRemaining = () => {
+    return client.paquetes
+      .filter((p) => p.estado === "Activo")
+      .reduce((total, p) => total + (p.clasesTotales - p.clasesUtilizadas), 0)
+  }
+
+  const getAttendanceRate = () => {
+    const totalClasses = client.paquetes.reduce((total, p) => total + p.clasesUtilizadas, 0)
+    const totalPossible = client.paquetes.reduce((total, p) => total + p.clasesTotales, 0)
+    return totalPossible > 0 ? Math.round((totalClasses / totalPossible) * 100) : 0
+  }
+
+  return (
+    <div className="flex h-screen bg-[#F1F5F9]">
+      <Sidebar />
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Navbar />
+
+        <main className="flex-1 overflow-y-auto p-8">
+          <div className="max-w-7xl mx-auto space-y-8">
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-2 text-sm text-[#94A3B8]">
+              <button onClick={() => router.push("/clientes")} className="hover:text-[#1E40AF] transition-colors">
+                Clientes
+              </button>
+              <MaterialIcon name="chevron_right" className="text-xs" />
+              <span className="text-[#0F172A] font-medium">{client.nombre}</span>
+            </div>
+
+            <Card className="bg-white rounded-xl shadow-sm border-0 p-8 hover:shadow-md transition-shadow duration-200">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                {/* Left side: Avatar + Client info */}
+                <div className="flex items-center gap-6">
+                  <div className="relative group">
+                    <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
+                      <AvatarImage src={client.avatar || "/placeholder.svg"} alt={client.nombre} />
+                      <AvatarFallback className="bg-[#1E40AF]/10 text-[#1E40AF] text-xl font-semibold">
+                        {getInitials(client.nombre)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {isEditing && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute inset-0 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <MaterialIcon name="photo_camera" className="text-lg" />
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <h1 className="text-3xl font-bold text-[#0F172A] leading-tight tracking-tight">{client.nombre}</h1>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={client.estado === "Activo"}
+                          onCheckedChange={(checked) => handleInputChange("estado", checked ? "Activo" : "Inactivo")}
+                          disabled={!isEditing}
+                        />
+                        <Badge variant="secondary" className={getStatusBadgeColor(client.estado)}>
+                          {client.estado}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-[#94A3B8]">
+                        Cliente desde{" "}
+                        {new Date(client.fechaRegistro).toLocaleDateString("es-ES", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right side: Quick Actions */}
+                <div className="flex flex-wrap gap-3">
+                  {!isEditing ? (
+                    <>
+                      <Button
+                        onClick={() => setIsEditing(true)}
+                        className="bg-[#1E40AF] hover:bg-[#1D4ED8] active:bg-[#1E3A8A] text-white font-medium px-6 py-3 rounded-lg transition-all duration-150 shadow-sm hover:shadow-md"
+                      >
+                        <MaterialIcon name="edit" className="text-lg mr-2" />
+                        Editar perfil
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        onClick={handleSave}
+                        disabled={!hasChanges || isSaving}
+                        className="bg-[#1E40AF] hover:bg-[#1D4ED8] active:bg-[#1E3A8A] text-white font-medium px-6 py-3 rounded-lg transition-all duration-150 shadow-sm hover:shadow-md"
+                      >
+                        {isSaving ? (
+                          <>
+                            <MaterialIcon name="sync" className="text-lg mr-2 animate-spin" />
+                            Guardando...
+                          </>
+                        ) : (
+                          <>
+                            <MaterialIcon name="save" className="text-lg mr-2" />
+                            Guardar cambios
+                          </>
+                        )}
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        onClick={handleCancel}
+                        className="border border-[#94A3B8]/30 hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 text-[#0F172A] font-medium px-6 py-3 rounded-lg transition-all duration-150 bg-transparent"
+                      >
+                        <MaterialIcon name="close" className="text-lg mr-2" />
+                        Cancelar
+                      </Button>
+                    </>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/clientes/${client.id}/historial`)}
+                    className="border border-[#94A3B8]/30 hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 text-[#0F172A] font-medium px-6 py-3 rounded-lg transition-all duration-150"
+                  >
+                    <MaterialIcon name="history" className="text-lg mr-2" />
+                    Historial
+                  </Button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="border border-red-200 hover:border-red-300 hover:bg-red-50 text-red-600 font-medium px-6 py-3 rounded-lg transition-all duration-150 bg-transparent"
+                      >
+                        <MaterialIcon name="delete" className="text-lg mr-2" />
+                        Eliminar cliente
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta acción no se puede deshacer. Se eliminará permanentemente el perfil de {client.nombre} y
+                          todos sus datos asociados.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+                          Eliminar
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="border border-[#94A3B8]/30 hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 text-[#0F172A] w-12 h-12 rounded-lg transition-all duration-150 bg-transparent"
+                      >
+                        <MaterialIcon name="more_vert" className="text-lg" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <MaterialIcon name="print" className="text-sm mr-2" />
+                        Imprimir perfil
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <MaterialIcon name="share" className="text-sm mr-2" />
+                        Compartir
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <MaterialIcon name="archive" className="text-sm mr-2" />
+                        Archivar cliente
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="bg-white rounded-xl shadow-sm border-0 p-8 hover:shadow-md transition-shadow duration-200">
+              <CardHeader className="p-0 mb-6">
+                <CardTitle className="text-xl font-semibold text-[#0F172A] leading-snug flex items-center gap-3">
+                  <MaterialIcon name="person" className="text-2xl text-[#1E40AF]" />
+                  Información Personal
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Nombre completo *</Label>
+                    {isEditing ? (
+                      <Input
+                        value={client.nombre}
+                        onChange={(e) => handleInputChange("nombre", e.target.value)}
+                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white transition-all duration-150"
+                      />
+                    ) : (
+                      <p className="text-[#0F172A] font-medium">{client.nombre}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Email *</Label>
+                    {isEditing ? (
+                      <Input
+                        type="email"
+                        value={client.email}
+                        onChange={(e) => handleInputChange("email", e.target.value)}
+                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white transition-all duration-150"
+                      />
+                    ) : (
+                      <p className="text-[#0F172A] font-medium">{client.email}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Teléfono *</Label>
+                    {isEditing ? (
+                      <Input
+                        value={client.telefono}
+                        onChange={(e) => handleInputChange("telefono", e.target.value)}
+                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white transition-all duration-150"
+                      />
+                    ) : (
+                      <p className="text-[#0F172A] font-medium">{client.telefono}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Fecha de nacimiento</Label>
+                    {isEditing ? (
+                      <Input
+                        type="date"
+                        value={client.fechaNacimiento}
+                        onChange={(e) => handleInputChange("fechaNacimiento", e.target.value)}
+                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white transition-all duration-150"
+                      />
+                    ) : (
+                      <p className="text-[#0F172A] font-medium">
+                        {new Date(client.fechaNacimiento).toLocaleDateString("es-ES")}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">DNI/NIE</Label>
+                    {isEditing ? (
+                      <Input
+                        value={client.dni}
+                        onChange={(e) => handleInputChange("dni", e.target.value)}
+                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white transition-all duration-150"
+                      />
+                    ) : (
+                      <p className="text-[#0F172A] font-medium">{client.dni}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Categoría</Label>
+                    {isEditing ? (
+                      <Select value={client.categoria} onValueChange={(value) => handleInputChange("categoria", value)}>
+                        <SelectTrigger className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] bg-white transition-all duration-150">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Principiante">Principiante</SelectItem>
+                          <SelectItem value="Intermedio">Intermedio</SelectItem>
+                          <SelectItem value="Avanzado">Avanzado</SelectItem>
+                          <SelectItem value="Competición">Competición</SelectItem>
+                          <SelectItem value="Veterano">Veterano</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-[#0F172A] font-medium">{client.categoria}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Dirección completa</Label>
+                    {isEditing ? (
+                      <Textarea
+                        value={client.direccion}
+                        onChange={(e) => handleInputChange("direccion", e.target.value)}
+                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white resize-none transition-all duration-150"
+                        rows={2}
+                      />
+                    ) : (
+                      <p className="text-[#0F172A] font-medium">{client.direccion}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Contacto de emergencia</Label>
+                    {isEditing ? (
+                      <Input
+                        value={client.contactoEmergencia}
+                        onChange={(e) => handleInputChange("contactoEmergencia", e.target.value)}
+                        placeholder="Nombre - Teléfono"
+                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white transition-all duration-150"
+                      />
+                    ) : (
+                      <p className="text-[#0F172A] font-medium">{client.contactoEmergencia}</p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white rounded-xl shadow-sm border-0 p-8 hover:shadow-md transition-shadow duration-200">
+              <CardHeader className="p-0 mb-6">
+                <CardTitle className="text-xl font-semibold text-[#0F172A] leading-snug flex items-center gap-3">
+                  <MaterialIcon name="inventory" className="text-2xl text-[#1E40AF]" />
+                  Paquetes Adquiridos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 space-y-4">
+                {client.paquetes.map((paquete) => (
+                  <div
+                    key={paquete.id}
+                    className="bg-white/50 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:shadow-sm transition-shadow"
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                      {/* Package details on left */}
+                      <div className="flex-1 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-semibold text-[#0F172A] text-lg">{paquete.nombre}</h4>
+                            <p className="text-sm text-[#94A3B8]">
+                              {paquete.instructor && `Instructor: ${paquete.instructor}`} • {paquete.tipoClase}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className={getPackageStatusColor(paquete.estado)}>
+                              {paquete.estado}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <p className="text-[#94A3B8]">Comprado</p>
+                            <p className="text-[#0F172A] font-medium">
+                              {new Date(paquete.fechaCompra).toLocaleDateString("es-ES")}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[#94A3B8]">Vence</p>
+                            <p className="text-[#0F172A] font-medium">
+                              {new Date(paquete.fechaVencimiento).toLocaleDateString("es-ES")}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[#94A3B8]">Plan</p>
+                            <p className="text-[#0F172A] font-medium">{paquete.planPago}</p>
+                          </div>
+                          <div>
+                            <p className="text-[#94A3B8]">Precio</p>
+                            <p className="text-[#0F172A] font-medium">€{paquete.precio}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Progress bar in center */}
+                      <div className="lg:w-48 space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[#94A3B8]">Progreso</span>
+                          <span className="text-[#0F172A] font-medium">
+                            {paquete.clasesUtilizadas} / {paquete.clasesTotales}
+                          </span>
+                        </div>
+                        <Progress value={(paquete.clasesUtilizadas / paquete.clasesTotales) * 100} className="h-3" />
+                      </div>
+
+                      {/* Payment status and actions on right */}
+                      <div className="lg:w-64 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <button
+                            onClick={() => handleOpenPaymentModal(paquete.id)}
+                            className="flex items-center gap-1 hover:bg-gray-50 rounded-md px-2 py-1 transition-colors"
+                          >
+                            <MaterialIcon
+                              name={getPaymentStatusIcon(paquete.estadoPago)}
+                              className={cn(
+                                "text-sm",
+                                paquete.estadoPago === "Pagado" && "text-green-600",
+                                paquete.estadoPago === "Pendiente" && "text-yellow-600",
+                                paquete.estadoPago === "Vencido" && "text-red-600",
+                              )}
+                            />
+                            <Badge variant="secondary" className={getPaymentStatusColor(paquete.estadoPago)}>
+                              {paquete.estadoPago}
+                            </Badge>
+                          </button>
+
+                          <div className="flex items-center gap-1">
+                            {paquete.metodoPago && (
+                              <MaterialIcon
+                                name={getPaymentMethodIcon(paquete.metodoPago)}
+                                className="text-sm text-[#94A3B8]"
+                              />
+                            )}
+                            {paquete.autoRenovacion && (
+                              <MaterialIcon
+                                name="autorenew"
+                                className="text-sm text-blue-600"
+                                title="Auto-renovación activa"
+                              />
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          {paquete.estado === "Activo" && paquete.clasesUtilizadas < paquete.clasesTotales && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleOpenAttendanceModal(paquete.id)}
+                              className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 h-7 flex-1"
+                            >
+                              <MaterialIcon name="check" className="text-sm mr-1" />
+                              Marcar
+                            </Button>
+                          )}
+                          {paquete.estadoPago === "Pendiente" && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleOpenPaymentModal(paquete.id)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 h-7 flex-1"
+                            >
+                              <MaterialIcon name="payment" className="text-sm mr-1" />
+                              Pagar
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs px-3 py-1 h-7 border-gray-200 hover:border-gray-300 bg-transparent"
+                          >
+                            <MaterialIcon name="receipt" className="text-sm mr-1" />
+                            Factura
+                          </Button>
+                        </div>
+
+                        {paquete.proximoPago && (
+                          <div className="text-xs text-[#94A3B8]">
+                            Próximo pago: {new Date(paquete.proximoPago).toLocaleDateString("es-ES")}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white rounded-xl shadow-sm border-0 p-8 hover:shadow-md transition-shadow duration-200">
+              <CardHeader className="p-0 mb-6">
+                <CardTitle className="text-xl font-semibold text-[#0F172A] leading-snug flex items-center gap-3">
+                  <MaterialIcon name="analytics" className="text-2xl text-[#1E40AF]" />
+                  Resumen de Actividad
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <MaterialIcon name="fitness_center" className="text-2xl text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">Clases Restantes</span>
+                    </div>
+                    <p className="text-3xl font-bold text-blue-900">{getTotalClassesRemaining()}</p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <MaterialIcon name="trending_up" className="text-2xl text-green-600" />
+                      <span className="text-sm font-medium text-green-800">Tasa de Asistencia</span>
+                    </div>
+                    <p className="text-3xl font-bold text-green-900">{getAttendanceRate()}%</p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <MaterialIcon name="star" className="text-2xl text-purple-600" />
+                      <span className="text-sm font-medium text-purple-800">Rating</span>
+                    </div>
+                    <p className="text-3xl font-bold text-purple-900">{client.rating}/5</p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <MaterialIcon name="inventory" className="text-2xl text-orange-600" />
+                      <span className="text-sm font-medium text-orange-800">Paquetes Activos</span>
+                    </div>
+                    <p className="text-3xl font-bold text-orange-900">
+                      {client.paquetes.filter((p) => p.estado === "Activo").length}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-[#0F172A] text-lg">Actividad Reciente</h4>
+                  <div className="space-y-3">
+                    {client.historialAsistencia.slice(0, 5).map((asistencia) => (
+                      <div key={asistencia.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                        <MaterialIcon name="check_circle" className="text-green-600 text-xl" />
+                        <div className="flex-1">
+                          <p className="font-medium text-[#0F172A]">{asistencia.paqueteNombre}</p>
+                          <p className="text-sm text-[#94A3B8]">
+                            {new Date(asistencia.fecha).toLocaleDateString("es-ES")} • {asistencia.instructor} •{" "}
+                            {asistencia.tipoClase}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+
+      <Dialog
+        open={attendanceModal.isOpen}
+        onOpenChange={(open) => setAttendanceModal((prev) => ({ ...prev, isOpen: open }))}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-[#0F172A]">Marcar Asistencia</DialogTitle>
+            <DialogDescription className="text-[#94A3B8]">
+              Registra la asistencia a una clase del paquete seleccionado.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-[#0F172A]">Fecha de la clase</Label>
+              <Input
+                type="date"
+                value={attendanceModal.date}
+                onChange={(e) => setAttendanceModal((prev) => ({ ...prev, date: e.target.value }))}
+                className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-[#0F172A]">Instructor</Label>
+              <Select
+                value={attendanceModal.instructor}
+                onValueChange={(value) => setAttendanceModal((prev) => ({ ...prev, instructor: value }))}
+              >
+                <SelectTrigger className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3">
+                  <SelectValue placeholder="Seleccionar instructor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ana-garcia">Ana García</SelectItem>
+                  <SelectItem value="carlos-mendez">Carlos Méndez</SelectItem>
+                  <SelectItem value="maria-lopez">María López</SelectItem>
+                  <SelectItem value="david-ruiz">David Ruiz</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-[#0F172A]">Comentarios (opcional)</Label>
+              <Textarea
+                value={attendanceModal.comments}
+                onChange={(e) => setAttendanceModal((prev) => ({ ...prev, comments: e.target.value }))}
+                placeholder="Notas sobre la clase, progreso del alumno, etc."
+                className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 resize-none"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setAttendanceModal((prev) => ({ ...prev, isOpen: false }))}
+              className="border border-[#94A3B8]/30 hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 text-[#0F172A]"
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleMarkAttendance} className="bg-[#1E40AF] hover:bg-[#1D4ED8] text-white">
+              <MaterialIcon name="check" className="text-lg mr-2" />
+              Marcar Asistencia
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={paymentModal.isOpen}
+        onOpenChange={(open) => setPaymentModal((prev) => ({ ...prev, isOpen: open }))}
+      >
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-[#0F172A]">Gestión de Pagos</DialogTitle>
+            <DialogDescription className="text-[#94A3B8]">
+              Procesa pagos y gestiona comprobantes para el paquete seleccionado.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Tabs defaultValue="payment" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="payment">Nuevo Pago</TabsTrigger>
+              <TabsTrigger value="receipts">Comprobantes</TabsTrigger>
+              <TabsTrigger value="history">Historial</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="payment" className="space-y-4 mt-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-[#0F172A]">Método de pago</Label>
+                  <Select
+                    value={paymentModal.metodo}
+                    onValueChange={(value) => setPaymentModal((prev) => ({ ...prev, metodo: value as any }))}
+                  >
+                    <SelectTrigger className="border border-[#94A3B8]/30 focus:border-[#1E40AF]">
+                      <SelectValue placeholder="Seleccionar método" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Efectivo">
+                        <div className="flex items-center gap-2">
+                          <MaterialIcon name="payments" className="text-sm" />
+                          Efectivo
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Transferencia">
+                        <div className="flex items-center gap-2">
+                          <MaterialIcon name="account_balance" className="text-sm" />
+                          Transferencia bancaria
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Tarjeta">
+                        <div className="flex items-center gap-2">
+                          <MaterialIcon name="credit_card" className="text-sm" />
+                          Tarjeta de crédito
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Bizum">
+                        <div className="flex items-center gap-2">
+                          <MaterialIcon name="smartphone" className="text-sm" />
+                          Bizum
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="PayPal">
+                        <div className="flex items-center gap-2">
+                          <MaterialIcon name="account_balance_wallet" className="text-sm" />
+                          PayPal
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-[#0F172A]">Cantidad</Label>
+                  <Input
+                    type="number"
+                    value={paymentModal.cantidad}
+                    onChange={(e) => setPaymentModal((prev) => ({ ...prev, cantidad: Number(e.target.value) }))}
+                    className="border border-[#94A3B8]/30 focus:border-[#1E40AF]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-[#0F172A]">Notas adicionales</Label>
+                <Textarea
+                  value={paymentModal.notas}
+                  onChange={(e) => setPaymentModal((prev) => ({ ...prev, notas: e.target.value }))}
+                  placeholder="Información adicional sobre el pago..."
+                  className="border border-[#94A3B8]/30 focus:border-[#1E40AF] resize-none"
+                  rows={3}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="receipts" className="space-y-4 mt-6">
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <MaterialIcon name="cloud_upload" className="text-4xl text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-600 mb-2">Arrastra y suelta el comprobante aquí</p>
+                  <p className="text-xs text-gray-500 mb-4">o</p>
+                  <Button variant="outline" onClick={() => document.getElementById("file-upload")?.click()}>
+                    <MaterialIcon name="attach_file" className="text-sm mr-2" />
+                    Seleccionar archivo
+                  </Button>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </div>
+
+                {paymentModal.comprobante && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <MaterialIcon name="description" className="text-2xl text-blue-600" />
+                      <div>
+                        <p className="font-medium text-[#0F172A]">{paymentModal.comprobante.name}</p>
+                        <p className="text-sm text-[#94A3B8]">
+                          {(paymentModal.comprobante.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setPaymentModal((prev) => ({ ...prev, comprobante: null }))}
+                        className="ml-auto text-red-600 hover:text-red-700"
+                      >
+                        <MaterialIcon name="delete" className="text-sm" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="history" className="space-y-4 mt-6">
+              <div className="space-y-3">
+                {client.paquetes
+                  .find((p) => p.id === paymentModal.packageId)
+                  ?.pagosRealizados.map((pago) => (
+                    <div key={pago.id} className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <MaterialIcon name={getPaymentMethodIcon(pago.metodo)} className="text-sm text-gray-600" />
+                          <span className="font-medium text-[#0F172A]">€{pago.cantidad}</span>
+                          <Badge
+                            variant="secondary"
+                            className={
+                              pago.estado === "Completado"
+                                ? "bg-green-100 text-green-800"
+                                : pago.estado === "Pendiente"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                            }
+                          >
+                            {pago.estado}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {pago.verificado && (
+                            <MaterialIcon name="verified" className="text-sm text-green-600" title="Verificado" />
+                          )}
+                          {pago.comprobante && (
+                            <Button size="sm" variant="ghost" className="text-xs">
+                              <MaterialIcon name="download" className="text-sm mr-1" />
+                              Ver
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-sm text-[#94A3B8]">
+                        {new Date(pago.fecha).toLocaleDateString("es-ES")} • {pago.metodo}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setPaymentModal((prev) => ({ ...prev, isOpen: false }))}
+              className="border border-[#94A3B8]/30 hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 text-[#0F172A]"
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleProcessPayment} className="bg-[#1E40AF] hover:bg-[#1D4ED8] text-white">
+              <MaterialIcon name="payment" className="text-lg mr-2" />
+              Procesar Pago
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}

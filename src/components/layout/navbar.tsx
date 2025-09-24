@@ -33,7 +33,6 @@ export function Navbar() {
   return (
     <header className="h-16 bg-card border-b border-border px-6 flex items-center justify-between">
       {/* Logo */}
-      
 
       {/* Search bar */}
       <div className="flex-1 max-w-md mx-4">
@@ -49,7 +48,11 @@ export function Navbar() {
       {/* Right section */}
       <div className="flex items-center gap-4">
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative text-[#1E40AF] hover:bg-[#1E40AF]/5 font-medium rounded-lg transition-all duration-150"
+        >
           <MaterialIcon name="notifications" className="text-xl" />
           <span className="absolute -top-1 -right-1 h-3 w-3 bg-destructive rounded-full text-xs flex items-center justify-center">
             <span className="sr-only">3 notifications</span>
@@ -59,14 +62,17 @@ export function Navbar() {
         {/* User dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 px-3">
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2 px-3 text-[#1E40AF] hover:bg-[#1E40AF]/5 font-medium rounded-lg transition-all duration-150"
+            >
               <Avatar className="h-8 w-8">
                 <AvatarImage src="/placeholder-avatar.jpg" alt="Usuario" />
                 <AvatarFallback className="bg-primary text-primary-foreground">
                   <MaterialIcon name="account_circle" className="text-lg" />
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden sm:block text-sm font-medium">Admin</span>
+              <span className="hidden sm:block text-sm font-normal text-[#94A3B8] leading-normal">Admin</span>
               <MaterialIcon name="expand_more" className="text-lg" />
             </Button>
           </DropdownMenuTrigger>

@@ -45,13 +45,13 @@ const getTypeBadge = (type: string) => {
   switch (type) {
     case "enrollment":
       return (
-        <Badge variant="default" className="bg-success text-success-foreground">
+        <Badge variant="default" className="bg-[#059669] text-white">
           Inscripción
         </Badge>
       )
     case "completion":
       return (
-        <Badge variant="default" className="bg-primary text-primary-foreground">
+        <Badge variant="default" className="bg-[#1E40AF] text-white">
           Completado
         </Badge>
       )
@@ -65,11 +65,11 @@ const getTypeBadge = (type: string) => {
 export function RecentActivity() {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Actividad Reciente</CardTitle>
+      <CardHeader className="p-0">
+        <CardTitle className="text-xl font-semibold text-[#0F172A] leading-snug">Actividad Reciente</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="pt-0">
+        <div className="space-y-6">
           {activities.map((activity) => (
             <div key={activity.id} className="flex items-center gap-4">
               <Avatar className="h-10 w-10">
@@ -82,12 +82,12 @@ export function RecentActivity() {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1">
-                <p className="text-sm">
+                <p className="text-base font-normal text-[#64748B] leading-relaxed">
                   <span className="font-medium">{activity.user}</span>{" "}
-                  <span className="text-muted-foreground">{activity.action}</span>{" "}
+                  <span className="text-[#94A3B8]">{activity.action}</span>{" "}
                   <span className="font-medium">{activity.target}</span>
                 </p>
-                <p className="text-xs text-muted-foreground">{activity.time}</p>
+                <p className="text-sm font-normal text-[#94A3B8] leading-normal">{activity.time}</p>
               </div>
               {getTypeBadge(activity.type)}
             </div>

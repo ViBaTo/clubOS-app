@@ -4,39 +4,39 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated color scheme to match the exact specifications */
-  --background: #fbfafc;
-  --foreground: #1a1d29;
-  --card: #ffffff;
-  --card-foreground: #1a1d29;
+  /* Updated to Apple minimalista color scheme */
+  --background: #f1f5f9; /* Apple light background */
+  --foreground: #0f172a; /* Primary text color */
+  --card: #ffffff; /* Card surfaces */
+  --card-foreground: #0f172a; /* Text on cards */
   --popover: #ffffff;
-  --popover-foreground: #1a1d29;
-  --primary: #14b8a6;
+  --popover-foreground: #0f172a;
+  --primary: #1e40af; /* Primary accent blue */
   --primary-foreground: #ffffff;
-  --secondary: #fbfafc;
-  --secondary-foreground: #425569;
-  --muted: #94a3b8;
-  --muted-foreground: #6b7280;
-  --accent: #14b8a6;
+  --secondary: #059669; /* Secondary accent green */
+  --secondary-foreground: #ffffff;
+  --muted: #94a3b8; /* Tertiary text */
+  --muted-foreground: #64748b; /* Secondary text */
+  --accent: #1e40af;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --success: #10b981;
+  --success: #059669;
   --success-foreground: #ffffff;
   --warning: #f59e0b;
   --warning-foreground: #ffffff;
   --border: #e5e7eb;
   --input: #f9fafb;
-  --ring: #14b8a6;
+  --ring: #1e40af;
   --radius: 0.5rem;
   --sidebar: #ffffff;
-  --sidebar-foreground: #1a1d29;
-  --sidebar-primary: #14b8a6;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #1e40af;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f3f4f6;
-  --sidebar-accent-foreground: #1a1d29;
+  --sidebar-accent-foreground: #0f172a;
   --sidebar-border: #e5e7eb;
-  --sidebar-ring: #14b8a6;
+  --sidebar-ring: #1e40af;
 }
 
 .dark {
@@ -46,36 +46,36 @@
   --card-foreground: #fbfafc;
   --popover: #2d3748;
   --popover-foreground: #fbfafc;
-  --primary: #14b8a6;
+  --primary: #1e40af;
   --primary-foreground: #ffffff;
-  --secondary: #425569;
-  --secondary-foreground: #fbfafc;
+  --secondary: #059669;
+  --secondary-foreground: #ffffff;
   --muted: #6b7280;
   --muted-foreground: #94a3b8;
-  --accent: #14b8a6;
+  --accent: #1e40af;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --success: #10b981;
+  --success: #059669;
   --success-foreground: #ffffff;
   --warning: #f59e0b;
   --warning-foreground: #ffffff;
   --border: #425569;
   --input: #2d3748;
-  --ring: #14b8a6;
+  --ring: #1e40af;
   --sidebar: #2d3748;
   --sidebar-foreground: #fbfafc;
-  --sidebar-primary: #14b8a6;
+  --sidebar-primary: #1e40af;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #425569;
   --sidebar-accent-foreground: #fbfafc;
   --sidebar-border: #425569;
-  --sidebar-ring: #14b8a6;
+  --sidebar-ring: #1e40af;
 }
 
 @theme inline {
-  /* Updated font configuration to use Inter instead of Nunito Sans */
-  --font-sans: var(--font-inter);
+  /* Updated font configuration to use Apple system fonts */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -118,6 +118,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 }

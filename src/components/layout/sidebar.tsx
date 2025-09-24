@@ -64,7 +64,7 @@ export function Sidebar() {
   const sidebarContent = (
     <div className="flex flex-col h-full">
       <div className="h-16 px-6 border-b border-sidebar-border flex items-center">
-        <h2 className="text-xl font-bold text-sidebar-foreground">ClubOS</h2>
+        <h2 className="text-3xl font-semibold text-[#0F172A] leading-tight">ClubOS</h2>
       </div>
 
       <nav className="flex-1 p-4 space-y-2">
@@ -75,9 +75,9 @@ export function Sidebar() {
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full justify-between text-left font-medium",
-                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                    expandedItems.includes(item.title) && "bg-sidebar-accent text-sidebar-accent-foreground",
+                    "w-full justify-between text-left text-[#1E40AF] hover:bg-[#1E40AF]/5 font-medium px-4 py-2 rounded-lg transition-all duration-150",
+                    "text-base font-normal text-[#64748B] leading-relaxed font-medium",
+                    expandedItems.includes(item.title) && "bg-[#1E40AF]/5 text-[#1E40AF]",
                   )}
                   onClick={() => toggleExpanded(item.title)}
                 >
@@ -97,17 +97,16 @@ export function Sidebar() {
                         <Button
                           variant="ghost"
                           className={cn(
-                            "w-full justify-start gap-3 text-sm",
-                            "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                            pathname === subItem.href &&
-                              "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary",
+                            "w-full justify-start gap-3 text-[#1E40AF] hover:bg-[#1E40AF]/5 font-medium px-4 py-2 rounded-lg transition-all duration-150",
+                            "text-sm font-normal text-[#94A3B8] leading-normal",
+                            pathname === subItem.href && "bg-[#1E40AF] text-white hover:bg-[#1D4ED8]",
                           )}
                         >
                           <MaterialIcon
                             name={subItem.icon}
                             className={cn(
                               "text-lg transition-colors",
-                              pathname === subItem.href ? "text-sidebar-primary-foreground" : "text-muted-foreground",
+                              pathname === subItem.href ? "text-white" : "text-muted-foreground",
                             )}
                             filled={pathname === subItem.href}
                           />
@@ -123,17 +122,16 @@ export function Sidebar() {
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start gap-3",
-                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                    pathname === item.href &&
-                      "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary",
+                    "w-full justify-start gap-3 text-[#1E40AF] hover:bg-[#1E40AF]/5 font-medium px-4 py-2 rounded-lg transition-all duration-150",
+                    "text-base font-normal text-[#64748B] leading-relaxed",
+                    pathname === item.href && "bg-[#1E40AF] text-white hover:bg-[#1D4ED8]",
                   )}
                 >
                   <MaterialIcon
                     name={item.icon}
                     className={cn(
                       "text-lg transition-colors",
-                      pathname === item.href ? "text-sidebar-primary-foreground" : "text-muted-foreground",
+                      pathname === item.href ? "text-white" : "text-muted-foreground",
                     )}
                     filled={pathname === item.href}
                   />
@@ -153,7 +151,7 @@ export function Sidebar() {
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden"
+        className="fixed top-4 left-4 z-50 md:hidden text-[#1E40AF] hover:bg-[#1E40AF]/5 font-medium rounded-lg transition-all duration-150"
         onClick={() => setIsOpen(!isOpen)}
       >
         <MaterialIcon name={isOpen ? "close" : "menu"} className="text-xl" />
