@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 
 const menuItems = [
   {
-    title: 'Alumnos',
+    title: 'Clientes',
     href: '/clientes',
     icon: 'group' // Material Design icon for users/clients
   },
