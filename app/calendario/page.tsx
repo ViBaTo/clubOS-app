@@ -153,12 +153,12 @@ export default function CalendarPage() {
       currentDate: view.fecha,
       events: filteredEvents,
       onEventClick: handleEventClick,
-      onEventDragStart: () => {}, // Handled by individual components
+      onEventMove: handleEventMove, // Added onEventMove prop to all views
     }
 
     switch (view.tipo) {
       case "month":
-        return <EnhancedMonthView {...commonProps} onDateClick={handleDateClick} onEventMove={handleEventMove} />
+        return <EnhancedMonthView {...commonProps} onDateClick={handleDateClick} />
       case "week":
         return <WeekView {...commonProps} onTimeSlotClick={handleTimeSlotClick} />
       case "day":
