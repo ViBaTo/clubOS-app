@@ -30,15 +30,15 @@ const stats = [
 
 export function StatsCards() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {stats.map((stat) => (
-        <Card key={stat.title} className="bg-white border-[#E2E8F0]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
+        <Card key={stat.title} className="bg-white border-[#E2E8F0] border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
             <CardTitle className="text-sm font-medium text-[#64748B] uppercase tracking-wide">{stat.title}</CardTitle>
             <stat.icon className="h-5 w-5 text-[#14B8A6]" />
           </CardHeader>
-          <CardContent className="px-6 pb-6 pt-0">
-            <div className="text-3xl font-bold text-[#0F172A] leading-tight">{stat.value}</div>
+          <CardContent className="px-4 pb-4 pt-0">
+            <div className="text-2xl font-bold text-[#0F172A] leading-tight">{stat.value}</div>
             <div className="flex items-center gap-2 mt-2">
               <span
                 className={`text-sm font-medium ${
