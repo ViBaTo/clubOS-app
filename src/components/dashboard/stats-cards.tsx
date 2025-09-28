@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, GraduationCap, Calendar, TrendingUp } from "lucide-react"
+import { Users, UserCheck, TrendingUp } from "lucide-react"
 
 const stats = [
   {
@@ -8,42 +8,51 @@ const stats = [
     change: "+12%",
     changeType: "positive" as const,
     icon: Users,
+    subtitle: "desde el mes pasado",
   },
   {
-    title: "Clases Activas",
-    value: "56",
-    change: "+8%",
-    changeType: "positive" as const,
-    icon: Calendar,
+    title: "Clientes Activos",
+    value: "892",
+    change: "72%",
+    changeType: "neutral" as const,
+    icon: UserCheck,
+    subtitle: "ratio activos/inactivos",
   },
   {
-    title: "Programas Academia",
-    value: "12",
-    change: "+2%",
-    changeType: "positive" as const,
-    icon: GraduationCap,
-  },
-  {
-    title: "Ingresos Mensuales",
-    value: "$45,678",
+    title: "Ingresos Totales",
+    value: "€45,678",
     change: "+15%",
     changeType: "positive" as const,
     icon: TrendingUp,
+    subtitle: "crecimiento mensual",
   },
 ]
 
 export function StatsCards() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {stats.map((stat) => (
-        <Card key={stat.title}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
-            <CardTitle className="text-xs font-medium text-[#94A3B8] uppercase tracking-wide">{stat.title}</CardTitle>
-            <stat.icon className="h-4 w-4 text-[#94A3B8]" />
+        <Card key={stat.title} className="bg-white border-[#E2E8F0] border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+            <CardTitle className="text-sm font-medium text-[#64748B] uppercase tracking-wide">{stat.title}</CardTitle>
+            <stat.icon className="h-5 w-5 text-[#14B8A6]" />
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-3xl font-semibold text-[#0F172A] leading-tight">{stat.value}</div>
-            <p className="text-sm font-normal text-[#94A3B8] leading-normal mt-1">{stat.change} desde el mes pasado</p>
+          <CardContent className="px-4 pb-4 pt-0">
+            <div className="text-2xl font-bold text-[#0F172A] leading-tight">{stat.value}</div>
+            <div className="flex items-center gap-2 mt-2">
+              <span
+                className={`text-sm font-medium ${
+                  stat.changeType === "positive"
+                    ? "text-[#10B981]"
+                    : stat.changeType === "negative"
+                      ? "text-[#EF4444]"
+                      : "text-[#14B8A6]"
+                }`}
+              >
+                {stat.change}
+              </span>
+              <span className="text-sm text-[#64748B]">{stat.subtitle}</span>
+            </div>
           </CardContent>
         </Card>
       ))}
