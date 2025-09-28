@@ -108,9 +108,9 @@ export function WeekView({ currentDate, events, onEventClick, onTimeSlotClick, o
 
   return (
     <>
-      <div className="flex-1 bg-white overflow-hidden">
+      <div className="flex-1 bg-white overflow-hidden flex flex-col">
         {/* Header with days */}
-        <div className="grid grid-cols-8 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+        <div className="grid grid-cols-8 border-b border-[#E5E7EB] bg-[#F9FAFB] flex-shrink-0">
           <div className="p-4 border-r border-[#E5E7EB]"></div>
           {weekDays.map((date, index) => {
             const isToday = isSameDay(date, today)
@@ -134,14 +134,16 @@ export function WeekView({ currentDate, events, onEventClick, onTimeSlotClick, o
           })}
         </div>
 
-        {/* Time slots and events */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="grid grid-cols-8 relative">
+        <div className="flex-1 overflow-y-auto min-h-0" style={{ maxHeight: "calc(100vh - 200px)" }}>
+          <div className="grid grid-cols-8 relative" style={{ minHeight: `${hourSlots.length * 60}px` }}>
             {/* Time column */}
-            <div className="border-r border-[#E5E7EB]">
+            <div className="border-r border-[#E5E7EB] sticky left-0 bg-white z-20">
               {hourSlots.map((hour) => (
-                <div key={hour} className="h-[60px] border-b border-[#E5E7EB] p-2 text-right">
-                  <span className="text-sm text-[#6B7280]">{hour}</span>
+                <div
+                  key={hour}
+                  className="h-[60px] border-b border-[#E5E7EB] p-2 text-right flex items-start justify-end"
+                >
+                  <span className="text-sm text-[#6B7280] font-medium">{hour}</span>
                 </div>
               ))}
             </div>
