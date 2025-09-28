@@ -50,11 +50,21 @@ export function useDragDrop({ events, onEventMove }: UseDragDropProps) {
     (date: Date, hour?: string) => {
       if (!dragState.draggedEvent) return
 
-      // Create a temporary event with new date/time to check conflicts
+      const originalStartDate = new Date(dragState.draggedEvent.fechaInicio)
       const newStartDate = new Date(date)
+
       if (hour) {
+        // If specific hour is provided, use it
         const [hourNum, minuteNum] = hour.split(":").map(Number)
         newStartDate.setHours(hourNum, minuteNum, 0, 0)
+      } else {
+        // If no specific hour, preserve the original time
+        newStartDate.setHours(
+          originalStartDate.getHours(),
+          originalStartDate.getMinutes(),
+          originalStartDate.getSeconds(),
+          originalStartDate.getMilliseconds(),
+        )
       }
 
       const originalDuration =

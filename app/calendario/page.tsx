@@ -112,10 +112,21 @@ export default function CalendarPage() {
       // Update event in local state
       const updatedEvents = events.map((e) => {
         if (e.id === event.id) {
+          const originalStartDate = new Date(e.fechaInicio)
           const newStartDate = new Date(newDate)
+
           if (newHour) {
+            // If specific hour is provided, use it
             const [hourNum, minuteNum] = newHour.split(":").map(Number)
             newStartDate.setHours(hourNum, minuteNum, 0, 0)
+          } else {
+            // If no specific hour, preserve the original time
+            newStartDate.setHours(
+              originalStartDate.getHours(),
+              originalStartDate.getMinutes(),
+              originalStartDate.getSeconds(),
+              originalStartDate.getMilliseconds(),
+            )
           }
 
           const originalDuration = new Date(e.fechaFin).getTime() - new Date(e.fechaInicio).getTime()
