@@ -10,7 +10,7 @@ const menuItems = [
   {
     title: "Dashboard",
     href: "/dashboard",
-    icon: "dashboard", // Added dashboard menu item
+    icon: "analytics", // Changed from "dashboard" to valid Material Symbol "analytics"
   },
   {
     title: "Clientes",
@@ -80,9 +80,10 @@ export function Sidebar() {
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full justify-between text-left text-[#1E40AF] hover:bg-[#1E40AF]/5 font-medium px-4 py-2 rounded-lg transition-all duration-150",
-                    "text-base font-normal text-[#64748B] leading-relaxed font-medium",
+                    "w-full justify-between text-left font-medium px-4 py-2 rounded-lg transition-all duration-150", // Removed duplicate styles and color conflicts
+                    "text-base font-normal text-[#64748B] leading-relaxed",
                     expandedItems.includes(item.title) && "bg-[#1E40AF]/5 text-[#1E40AF]",
+                    "hover:bg-[#1E40AF]/5 hover:text-[#1E40AF]",
                   )}
                   onClick={() => toggleExpanded(item.title)}
                 >
