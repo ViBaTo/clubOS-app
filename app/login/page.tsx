@@ -71,8 +71,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FBFAFC] via-[#F1F5F9] to-[#E2E8F0] flex items-center justify-center p-4">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fillRule=\"evenodd\"%3E%3Cg fill=\"%2314B8A6\" fillOpacity=\"0.03\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"2\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50" />
-      
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fillRule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%2314B8A6%22%20fillOpacity%3D%220.03%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50" />
+
       <div className="relative w-full max-w-md">
         {/* Logo and Branding */}
         <div className="text-center mb-8">
@@ -80,22 +80,18 @@ export default function LoginPage() {
             <span className="text-2xl font-bold text-white">C</span>
           </div>
           <h1 className="text-3xl font-bold text-[#0F172A] mb-2">ClubOS</h1>
-          <p className="text-[#64748B] text-sm font-medium">
-            Gestiona tu club deportivo con facilidad
-          </p>
+          <p className="text-[#64748B] text-sm font-medium">Gestiona tu club deportivo con facilidad</p>
         </div>
 
         {/* Login Card */}
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl font-semibold text-center text-[#0F172A]">
-              Iniciar sesión
-            </CardTitle>
+            <CardTitle className="text-2xl font-semibold text-center text-[#0F172A]">Iniciar sesión</CardTitle>
             <CardDescription className="text-center text-[#64748B]">
               Ingresa tus credenciales para acceder al panel
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email Field */}
@@ -117,9 +113,7 @@ export default function LoginPage() {
                     disabled={isLoading}
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-sm text-red-500 mt-1">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
               </div>
 
               {/* Password Field */}
@@ -149,9 +143,7 @@ export default function LoginPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-red-500 mt-1">{errors.password}</p>
-                )}
+                {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
               </div>
 
               {/* Remember Me */}
@@ -163,10 +155,7 @@ export default function LoginPage() {
                   className="border-[#E2E8F0] data-[state=checked]:bg-[#14B8A6] data-[state=checked]:border-[#14B8A6]"
                   disabled={isLoading}
                 />
-                <Label
-                  htmlFor="remember"
-                  className="text-sm text-[#64748B] cursor-pointer select-none"
-                >
+                <Label htmlFor="remember" className="text-sm text-[#64748B] cursor-pointer select-none">
                   Recordarme
                 </Label>
               </div>
