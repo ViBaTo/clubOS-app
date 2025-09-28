@@ -1,8 +1,8 @@
 import { Sidebar } from "@/src/components/layout/sidebar"
 import { Navbar } from "@/src/components/layout/navbar"
 import { StatsCards } from "@/src/components/dashboard/stats-cards"
-import { RecentActivity } from "@/src/components/dashboard/recent-activity"
-import { QuickActions } from "@/src/components/dashboard/quick-actions"
+import { RevenueAnalytics } from "@/src/components/dashboard/revenue-analytics"
+import { CompactQuickActions } from "@/src/components/dashboard/compact-quick-actions"
 
 export default function Dashboard() {
   return (
@@ -14,7 +14,6 @@ export default function Dashboard() {
 
         <main className="flex-1 overflow-y-auto p-8">
           <div className="space-y-6">
-            {/* Page header */}
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-5xl font-bold text-[#0F172A] leading-tight tracking-tight text-balance">
@@ -24,20 +23,12 @@ export default function Dashboard() {
                   Bienvenido de vuelta. Aquí tienes un resumen de tu club.
                 </p>
               </div>
+              <CompactQuickActions />
             </div>
 
-            {/* Stats cards */}
             <StatsCards />
 
-            {/* Content grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <RecentActivity />
-              </div>
-              <div>
-                <QuickActions />
-              </div>
-            </div>
+            <RevenueAnalytics />
           </div>
         </main>
       </div>
