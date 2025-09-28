@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import type { CalendarFilter } from "@/src/types/calendar"
+import { mockCourts } from "@/src/data/calendar-mock"
 
 const MaterialIcon = ({ name, className = "" }: { name: string; className?: string }) => (
   <span className={cn("material-symbols-outlined", className)}>{name}</span>
@@ -17,6 +18,7 @@ interface QuickFiltersProps {
     thisWeek: number
     pending: number
     confirmed: number
+    courts: Record<string, number>
   }
 }
 
@@ -31,6 +33,14 @@ export function QuickFilters({ filter, onFilterChange, eventCounts }: QuickFilte
   const endOfWeek = new Date(startOfWeek)
   endOfWeek.setDate(startOfWeek.getDate() + 6)
   endOfWeek.setHours(23, 59, 59, 999)
+
+  const topCourts = mockCourts
+    .map((court) => ({
+      ...court,
+      count: eventCounts.courts[court.id] || 0,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
 
   const quickFilters = [
     {
@@ -75,6 +85,16 @@ export function QuickFilters({ filter, onFilterChange, eventCounts }: QuickFilte
         estados: ["Confirmada"],
       },
     },
+    ...topCourts.map((court) => ({
+      id: `court-${court.id}`,
+      label: court.nombre,
+      icon: "sports_tennis",
+      count: court.count,
+      filter: {
+        ...filter,
+        pistas: [court.id],
+      },
+    })),
   ]
 
   const isFilterActive = (quickFilter: any) => {
@@ -96,12 +116,16 @@ export function QuickFilters({ filter, onFilterChange, eventCounts }: QuickFilte
     if (quickFilter.id === "confirmed") {
       return filter.estados.length === 1 && filter.estados.includes("Confirmada")
     }
+    if (quickFilter.id.startsWith("court-")) {
+      const courtId = quickFilter.id.replace("court-", "")
+      return filter.pistas.length === 1 && filter.pistas.includes(courtId)
+    }
     return false
   }
 
   return (
-    <div className="flex items-center gap-2 p-4 bg-[#F9FAFB] border-b border-[#E5E7EB]">
-      <span className="text-sm font-medium text-[#6B7280] mr-2">Filtros rápidos:</span>
+    <div className="flex items-center gap-2 p-4 bg-[#F9FAFB] border-b border-[#E5E7EB] overflow-x-auto">
+      <span className="text-sm font-medium text-[#6B7280] mr-2 whitespace-nowrap">Filtros rápidos:</span>
       {quickFilters.map((quickFilter) => {
         const isActive = isFilterActive(quickFilter)
         return (
@@ -111,7 +135,7 @@ export function QuickFilters({ filter, onFilterChange, eventCounts }: QuickFilte
             size="sm"
             onClick={() => onFilterChange(quickFilter.filter)}
             className={cn(
-              "h-8 px-3 text-sm font-medium transition-all",
+              "h-8 px-3 text-sm font-medium transition-all whitespace-nowrap",
               isActive
                 ? "bg-[#1E40AF] text-white hover:bg-[#1D4ED8]"
                 : "text-[#6B7280] hover:text-[#374151] hover:bg-white",

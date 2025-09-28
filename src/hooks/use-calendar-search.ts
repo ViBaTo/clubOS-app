@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import type { CalendarEvent, CalendarFilter } from "@/src/types/calendar"
 import { filterEvents } from "@/src/utils/calendar-helpers"
+import { mockCourts } from "@/src/data/calendar-mock"
 
 interface UseCalendarSearchProps {
   events: CalendarEvent[]
@@ -49,6 +50,15 @@ export function useCalendarSearch({ events, initialFilter }: UseCalendarSearchPr
     const endOfWeek = new Date(startOfWeek)
     endOfWeek.setDate(startOfWeek.getDate() + 6)
 
+    // Adding court counts for quick filters
+    const courtCounts = mockCourts.reduce(
+      (acc, court) => {
+        acc[court.id] = events.filter((event) => event.pista.id === court.id).length
+        return acc
+      },
+      {} as Record<string, number>,
+    )
+
     return {
       today: events.filter((event) => {
         const eventDate = new Date(event.fechaInicio).toISOString().split("T")[0]
@@ -60,6 +70,8 @@ export function useCalendarSearch({ events, initialFilter }: UseCalendarSearchPr
       }).length,
       pending: events.filter((event) => event.estado === "Pendiente").length,
       confirmed: events.filter((event) => event.estado === "Confirmada").length,
+      // Adding court counts to return object
+      courts: courtCounts,
     }
   }, [events])
 
