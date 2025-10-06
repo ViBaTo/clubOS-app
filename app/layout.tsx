@@ -14,10 +14,6 @@ export const metadata: Metadata = {
   title: "ClubOS - Club Management Platform",
   description: "Modern club management platform for managing clients, products, and services",
   generator: "v0.app",
-  other: {
-    "google-fonts":
-      "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200",
-  },
 }
 
 export default function RootLayout({
@@ -27,13 +23,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans ${inter.variable} antialiased`}>
+      <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
           rel="stylesheet"
         />
-        {children}
-      </body>
+      </head>
+      <body className={`font-sans ${inter.variable} antialiased`}>{children}</body>
     </html>
   )
 }
