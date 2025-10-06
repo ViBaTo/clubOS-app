@@ -4,20 +4,20 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated to Apple minimalista color scheme */
-  --background: #f1f5f9; /* Apple light background */
+  /* Updated to ClubOS brand colors as requested */
+  --background: #fbfafc; /* ClubOS light background */
   --foreground: #0f172a; /* Primary text color */
   --card: #ffffff; /* Card surfaces */
   --card-foreground: #0f172a; /* Text on cards */
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-  --primary: #1e40af; /* Primary accent blue */
+  --primary: #14b8a6; /* ClubOS primary teal color */
   --primary-foreground: #ffffff;
   --secondary: #059669; /* Secondary accent green */
   --secondary-foreground: #ffffff;
   --muted: #94a3b8; /* Tertiary text */
   --muted-foreground: #64748b; /* Secondary text */
-  --accent: #1e40af;
+  --accent: #14b8a6;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
@@ -27,16 +27,16 @@
   --warning-foreground: #ffffff;
   --border: #e5e7eb;
   --input: #f9fafb;
-  --ring: #1e40af;
+  --ring: #14b8a6; /* ClubOS primary for focus rings */
   --radius: 0.5rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #0f172a;
-  --sidebar-primary: #1e40af;
+  --sidebar-primary: #14b8a6; /* ClubOS primary for sidebar */
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f3f4f6;
   --sidebar-accent-foreground: #0f172a;
   --sidebar-border: #e5e7eb;
-  --sidebar-ring: #1e40af;
+  --sidebar-ring: #14b8a6;
 }
 
 .dark {
