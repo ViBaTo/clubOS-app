@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
+import Link from "next/link"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -141,19 +142,13 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        {/* Footer */}
         <div className="text-center mt-6">
-          <p className="text-sm text-muted-foreground">
-            ¿No tienes cuenta?{" "}
-            <button className="text-primary hover:text-primary/80 font-medium transition-colors">
-              Contacta con soporte
-            </button>
-          </p>
-        </div>
-
-        {/* Optional CAPTCHA placeholder */}
-        <div className="mt-4 p-4 border-2 border-dashed border-border rounded-lg text-center">
-          <p className="text-xs text-muted-foreground">Área para CAPTCHA (opcional)</p>
+          <p className="text-sm text-muted-foreground mb-4">¿No tienes cuenta? </p>
+          <Link href="/registro">
+            <Button variant="outline" className="w-full h-11 text-base font-medium border-2 bg-transparent">
+              Crear cuenta nueva
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
