@@ -1,21 +1,14 @@
-'use client'
+"use client"
 
-import type React from 'react'
+import type React from "react"
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
-import Link from 'next/link'
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 
 interface LoginFormData {
   email: string
@@ -25,9 +18,9 @@ interface LoginFormData {
 
 export default function LoginPage() {
   const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: '',
-    rememberMe: false
+    email: "",
+    password: "",
+    rememberMe: false,
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -37,15 +30,15 @@ export default function LoginPage() {
     const newErrors: Partial<LoginFormData> = {}
 
     if (!formData.email) {
-      newErrors.email = 'El email es requerido'
+      newErrors.email = "El email es requerido"
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email inválido'
+      newErrors.email = "Email inválido"
     }
 
     if (!formData.password) {
-      newErrors.password = 'La contraseña es requerida'
+      newErrors.password = "La contraseña es requerida"
     } else if (formData.password.length < 6) {
-      newErrors.password = 'La contraseña debe tener al menos 6 caracteres'
+      newErrors.password = "La contraseña debe tener al menos 6 caracteres"
     }
 
     setErrors(newErrors)
@@ -63,14 +56,11 @@ export default function LoginPage() {
     setTimeout(() => {
       setIsLoading(false)
       // Handle successful login here
-      console.log('Login successful', formData)
+      console.log("Login successful", formData)
     }, 2000)
   }
 
-  const handleInputChange = (
-    field: keyof LoginFormData,
-    value: string | boolean
-  ) => {
+  const handleInputChange = (field: keyof LoginFormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     // Clear error when user starts typing
     if (errors[field]) {
@@ -79,118 +69,103 @@ export default function LoginPage() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-[#FBFAFC] via-[#F1F5F9] to-[#E2E8F0] flex items-center justify-center p-4'>
-      <div className='relative w-full max-w-md'>
+    <div className="min-h-screen bg-gradient-to-br from-[#FBFAFC] via-[#F1F5F9] to-[#E2E8F0] flex items-center justify-center p-4">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fillRule=\"evenodd\"%3E%3Cg fill=\"%2314B8A6\" fillOpacity=\"0.03\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"2\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50" />
+      
+      <div className="relative w-full max-w-md">
         {/* Logo and Branding */}
-        <div className='text-center mb-8'>
-          <div className='inline-flex items-center justify-center w-16 h-16 bg-[#14B8A6] rounded-2xl mb-4 shadow-lg'>
-            <span className='text-2xl font-bold text-white'>C</span>
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#14B8A6] rounded-2xl mb-4 shadow-lg">
+            <span className="text-2xl font-bold text-white">C</span>
           </div>
-          <h1 className='text-3xl font-bold text-[#0F172A] mb-2'>ClubOS</h1>
-          <p className='text-[#64748B] text-sm font-medium'>
+          <h1 className="text-3xl font-bold text-[#0F172A] mb-2">ClubOS</h1>
+          <p className="text-[#64748B] text-sm font-medium">
             Gestiona tu club deportivo con facilidad
           </p>
         </div>
 
         {/* Login Card */}
-        <Card className='shadow-xl border-0 bg-white/80 backdrop-blur-sm'>
-          <CardHeader className='space-y-1 pb-6'>
-            <CardTitle className='text-2xl font-semibold text-center text-[#0F172A]'>
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="space-y-1 pb-6">
+            <CardTitle className="text-2xl font-semibold text-center text-[#0F172A]">
               Iniciar sesión
             </CardTitle>
-            <CardDescription className='text-center text-[#64748B]'>
+            <CardDescription className="text-center text-[#64748B]">
               Ingresa tus credenciales para acceder al panel
             </CardDescription>
           </CardHeader>
-
+          
           <CardContent>
-            <form onSubmit={handleSubmit} className='space-y-4'>
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email Field */}
-              <div className='space-y-2'>
-                <Label
-                  htmlFor='email'
-                  className='text-sm font-medium text-[#0F172A]'
-                >
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-[#0F172A]">
                   Email o usuario
                 </Label>
-                <div className='relative'>
-                  <Mail className='absolute left-3 top-1/2 transform -translate-y-1/2 text-[#64748B] h-4 w-4' />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#64748B] h-4 w-4" />
                   <Input
-                    id='email'
-                    type='email'
-                    placeholder='tu@email.com'
+                    id="email"
+                    type="email"
+                    placeholder="tu@email.com"
                     value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
                     className={`pl-10 h-11 bg-[#F8FAFC] border-[#E2E8F0] focus:border-[#14B8A6] focus:ring-[#14B8A6] ${
-                      errors.email
-                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                        : ''
+                      errors.email ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
                     }`}
                     disabled={isLoading}
                   />
                 </div>
                 {errors.email && (
-                  <p className='text-sm text-red-500 mt-1'>{errors.email}</p>
+                  <p className="text-sm text-red-500 mt-1">{errors.email}</p>
                 )}
               </div>
 
               {/* Password Field */}
-              <div className='space-y-2'>
-                <Label
-                  htmlFor='password'
-                  className='text-sm font-medium text-[#0F172A]'
-                >
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium text-[#0F172A]">
                   Contraseña
                 </Label>
-                <div className='relative'>
-                  <Lock className='absolute left-3 top-1/2 transform -translate-y-1/2 text-[#64748B] h-4 w-4' />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#64748B] h-4 w-4" />
                   <Input
-                    id='password'
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder='••••••••'
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
                     value={formData.password}
-                    onChange={(e) =>
-                      handleInputChange('password', e.target.value)
-                    }
+                    onChange={(e) => handleInputChange("password", e.target.value)}
                     className={`pl-10 pr-10 h-11 bg-[#F8FAFC] border-[#E2E8F0] focus:border-[#14B8A6] focus:ring-[#14B8A6] ${
-                      errors.password
-                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                        : ''
+                      errors.password ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
                     }`}
                     disabled={isLoading}
                   />
                   <button
-                    type='button'
+                    type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-[#64748B] hover:text-[#0F172A] transition-colors'
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#64748B] hover:text-[#0F172A] transition-colors"
                     disabled={isLoading}
                   >
-                    {showPassword ? (
-                      <EyeOff className='h-4 w-4' />
-                    ) : (
-                      <Eye className='h-4 w-4' />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className='text-sm text-red-500 mt-1'>{errors.password}</p>
+                  <p className="text-sm text-red-500 mt-1">{errors.password}</p>
                 )}
               </div>
 
               {/* Remember Me */}
-              <div className='flex items-center space-x-2 pt-2'>
+              <div className="flex items-center space-x-2 pt-2">
                 <Checkbox
-                  id='remember'
+                  id="remember"
                   checked={formData.rememberMe}
-                  onCheckedChange={(checked) =>
-                    handleInputChange('rememberMe', checked as boolean)
-                  }
-                  className='border-[#E2E8F0] data-[state=checked]:bg-[#14B8A6] data-[state=checked]:border-[#14B8A6]'
+                  onCheckedChange={(checked) => handleInputChange("rememberMe", checked as boolean)}
+                  className="border-[#E2E8F0] data-[state=checked]:bg-[#14B8A6] data-[state=checked]:border-[#14B8A6]"
                   disabled={isLoading}
                 />
                 <Label
-                  htmlFor='remember'
-                  className='text-sm text-[#64748B] cursor-pointer select-none'
+                  htmlFor="remember"
+                  className="text-sm text-[#64748B] cursor-pointer select-none"
                 >
                   Recordarme
                 </Label>
@@ -198,25 +173,25 @@ export default function LoginPage() {
 
               {/* Submit Button */}
               <Button
-                type='submit'
-                className='w-full h-11 bg-[#14B8A6] hover:bg-[#0F9488] text-white font-medium transition-colors mt-6'
+                type="submit"
+                className="w-full h-11 bg-[#14B8A6] hover:bg-[#0F9488] text-white font-medium transition-colors mt-6"
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <div className='flex items-center space-x-2'>
-                    <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     <span>Iniciando sesión...</span>
                   </div>
                 ) : (
-                  'Iniciar sesión'
+                  "Iniciar sesión"
                 )}
               </Button>
 
               {/* Forgot Password Link */}
-              <div className='text-center pt-4'>
+              <div className="text-center pt-4">
                 <button
-                  type='button'
-                  className='text-sm text-[#14B8A6] hover:text-[#0F9488] font-medium transition-colors'
+                  type="button"
+                  className="text-sm text-[#14B8A6] hover:text-[#0F9488] font-medium transition-colors"
                   disabled={isLoading}
                 >
                   ¿Olvidaste tu contraseña?
@@ -226,22 +201,19 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        {/* Footer / Registro CTA */}
-        <div className='text-center mt-6'>
-          <p className='text-sm text-[#64748B] mb-4'>¿No tienes cuenta?</p>
-          <Link href='/registro'>
-            <Button
-              variant='outline'
-              className='w-full h-11 text-base font-medium border-2 bg-transparent'
-            >
-              Crear cuenta nueva
-            </Button>
-          </Link>
+        {/* Footer */}
+        <div className="text-center mt-6">
+          <p className="text-sm text-[#64748B]">
+            ¿No tienes cuenta?{" "}
+            <button className="text-[#14B8A6] hover:text-[#0F9488] font-medium transition-colors">
+              Contacta con soporte
+            </button>
+          </p>
         </div>
 
         {/* Security Badge */}
-        <div className='flex items-center justify-center mt-4 text-xs text-[#94A3B8]'>
-          <Lock className='h-3 w-3 mr-1' />
+        <div className="flex items-center justify-center mt-4 text-xs text-[#94A3B8]">
+          <Lock className="h-3 w-3 mr-1" />
           <span>Conexión segura SSL</span>
         </div>
       </div>

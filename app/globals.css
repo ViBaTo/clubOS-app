@@ -1,23 +1,23 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated to ClubOS brand colors as requested */
-  --background: #fbfafc; /* ClubOS light background */
+  /* Updated to Apple minimalista color scheme */
+  --background: #f1f5f9; /* Apple light background */
   --foreground: #0f172a; /* Primary text color */
   --card: #ffffff; /* Card surfaces */
   --card-foreground: #0f172a; /* Text on cards */
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-  --primary: #14b8a6; /* ClubOS primary teal color */
+  --primary: #1e40af; /* Primary accent blue */
   --primary-foreground: #ffffff;
   --secondary: #059669; /* Secondary accent green */
   --secondary-foreground: #ffffff;
   --muted: #94a3b8; /* Tertiary text */
   --muted-foreground: #64748b; /* Secondary text */
-  --accent: #14b8a6;
+  --accent: #1e40af;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
@@ -27,16 +27,16 @@
   --warning-foreground: #ffffff;
   --border: #e5e7eb;
   --input: #f9fafb;
-  --ring: #14b8a6; /* ClubOS primary for focus rings */
+  --ring: #1e40af;
   --radius: 0.5rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #0f172a;
-  --sidebar-primary: #14b8a6; /* ClubOS primary for sidebar */
+  --sidebar-primary: #1e40af;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f3f4f6;
   --sidebar-accent-foreground: #0f172a;
   --sidebar-border: #e5e7eb;
-  --sidebar-ring: #14b8a6;
+  --sidebar-ring: #1e40af;
 }
 
 .dark {
@@ -75,8 +75,7 @@
 
 @theme inline {
   /* Updated font configuration to use Apple system fonts */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display',
-    sans-serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -120,8 +119,5 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
-  }
-  button {
-    cursor: pointer;
   }
 }
