@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
 const MaterialIcon = ({
   name,
@@ -30,6 +31,14 @@ const MaterialIcon = ({
 )
 
 export function Navbar() {
+  const router = useRouter()
+
+  const handleLogout = () => {
+    // Here you could add any logout logic like clearing tokens, etc.
+    // For now, we just redirect to the login page
+    router.push("/login")
+  }
+
   return (
     <header className="h-16 bg-card border-b border-border px-6 flex items-center justify-between">
       {/* Logo */}
@@ -86,7 +95,10 @@ export function Navbar() {
               Configuración
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">Cerrar sesión</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive" onClick={handleLogout}>
+              <MaterialIcon name="logout" className="mr-2 text-lg" />
+              Cerrar sesión
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
