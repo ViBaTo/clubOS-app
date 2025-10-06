@@ -120,8 +120,8 @@ export function MembersDirectory() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [showCreateClient, setShowCreateClient] = useState(false)
   const router = useRouter()
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const filteredMembers = mockMembers.filter((member) => {
     const matchesSearch =
@@ -145,8 +145,8 @@ export function MembersDirectory() {
             <h1 className="text-5xl font-bold text-[#0F172A] leading-tight tracking-tight">Clientes</h1>
           </div>
           <Button
+            onClick={() => setIsModalOpen(true)}
             className="bg-[#1E40AF] hover:bg-[#1D4ED8] active:bg-[#1E3A8A] text-white font-medium px-6 py-3 rounded-lg transition-all duration-150 shadow-sm hover:shadow-md"
-            onClick={() => setShowCreateClient(true)}
           >
             <MaterialIcon name="add" className="text-lg mr-2" />
             Agregar Cliente
@@ -355,14 +355,7 @@ export function MembersDirectory() {
         </div>
       </div>
 
-      <CreateClientModal
-        open={showCreateClient}
-        onOpenChange={setShowCreateClient}
-        onSuccess={() => {
-          // Refresh the members list
-          window.location.reload()
-        }}
-      />
+      <CreateClientModal open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
   )
 }

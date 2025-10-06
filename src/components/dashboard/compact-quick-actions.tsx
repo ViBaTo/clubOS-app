@@ -7,7 +7,7 @@ import { UserPlus, Calendar, Settings, MoreHorizontal, Plus, GraduationCap } fro
 import { CreateClientModal } from "@/src/components/clients/create-client-modal"
 
 export function CompactQuickActions() {
-  const [showCreateClient, setShowCreateClient] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
     <>
@@ -16,7 +16,7 @@ export function CompactQuickActions() {
           size="sm"
           variant="outline"
           className="h-8 px-3 text-xs font-medium bg-white hover:bg-[#14B8A6]/5 hover:text-[#14B8A6] border-[#E2E8F0]"
-          onClick={() => setShowCreateClient(true)}
+          onClick={() => setIsModalOpen(true)}
         >
           <UserPlus className="h-3.5 w-3.5 mr-1.5" />
           Nuevo Cliente
@@ -73,14 +73,7 @@ export function CompactQuickActions() {
         </DropdownMenu>
       </div>
 
-      <CreateClientModal
-        open={showCreateClient}
-        onOpenChange={setShowCreateClient}
-        onSuccess={() => {
-          // Refresh the page or update the client list
-          window.location.reload()
-        }}
-      />
+      <CreateClientModal open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
   )
 }
