@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -75,7 +75,8 @@
 
 @theme inline {
   /* Updated font configuration to use Apple system fonts */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+    sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -119,5 +120,8 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+  }
+  button {
+    cursor: pointer;
   }
 }
