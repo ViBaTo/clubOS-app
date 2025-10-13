@@ -443,31 +443,31 @@ export default function ClientProfilePage() {
   }
 
   return (
-    <div className="flex h-screen bg-[#F1F5F9]">
+    <div className="flex h-screen bg-[#FAFBFC]">
       <Sidebar />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar />
 
-        <main className="flex-1 overflow-y-auto p-8">
-          <div className="max-w-7xl mx-auto space-y-8">
+        <main className="flex-1 overflow-y-auto p-8 bg-[#FAFBFC]">
+          <div className="max-w-7xl mx-auto space-y-32">
             {/* Breadcrumb */}
             <div className="flex items-center gap-2 text-sm text-[#94A3B8]">
-              <button onClick={() => router.push("/clientes")} className="hover:text-[#1E40AF] transition-colors">
+              <button onClick={() => router.push("/clientes")} className="hover:text-[#14B8A6] transition-colors">
                 Clientes
               </button>
               <MaterialIcon name="chevron_right" className="text-xs" />
-              <span className="text-[#0F172A] font-medium">{client.nombre}</span>
+              <span className="text-[#1A1D29] font-medium">{client.nombre}</span>
             </div>
 
-            <Card className="bg-white rounded-xl shadow-sm border-0 p-8 hover:shadow-md transition-shadow duration-200">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <Card className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border-0 p-8">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
                 {/* Left side: Avatar + Client info */}
                 <div className="flex items-center gap-6">
                   <div className="relative group">
-                    <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
+                    <Avatar className="h-30 w-30 ring-4 ring-white shadow-lg">
                       <AvatarImage src={client.avatar || "/placeholder.svg"} alt={client.nombre} />
-                      <AvatarFallback className="bg-[#1E40AF]/10 text-[#1E40AF] text-xl font-semibold">
+                      <AvatarFallback className="bg-[#14B8A6]/10 text-[#14B8A6] text-2xl font-semibold">
                         {getInitials(client.nombre)}
                       </AvatarFallback>
                     </Avatar>
@@ -482,8 +482,8 @@ export default function ClientProfilePage() {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <h1 className="text-3xl font-bold text-[#0F172A] leading-tight tracking-tight">{client.nombre}</h1>
+                  <div className="space-y-3">
+                    <h1 className="text-4xl font-bold text-[#1A1D29] leading-tight tracking-tight">{client.nombre}</h1>
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
                         <Switch
@@ -495,7 +495,7 @@ export default function ClientProfilePage() {
                           {client.estado}
                         </Badge>
                       </div>
-                      <div className="text-sm text-[#94A3B8]">
+                      <div className="text-sm text-[#6B7280]">
                         Cliente desde{" "}
                         {new Date(client.fechaRegistro).toLocaleDateString("es-ES", {
                           year: "numeric",
@@ -513,7 +513,7 @@ export default function ClientProfilePage() {
                     <>
                       <Button
                         onClick={() => setIsEditing(true)}
-                        className="bg-[#1E40AF] hover:bg-[#1D4ED8] active:bg-[#1E3A8A] text-white font-medium px-6 py-3 rounded-lg transition-all duration-150 shadow-sm hover:shadow-md"
+                        className="bg-[#14B8A6] hover:bg-[#0F9488] active:bg-[#0D8478] text-white font-medium px-6 py-3 rounded-xl transition-all duration-250 shadow-sm hover:shadow-md"
                       >
                         <MaterialIcon name="edit" className="text-lg mr-2" />
                         Editar perfil
@@ -524,7 +524,7 @@ export default function ClientProfilePage() {
                       <Button
                         onClick={handleSave}
                         disabled={!hasChanges || isSaving}
-                        className="bg-[#1E40AF] hover:bg-[#1D4ED8] active:bg-[#1E3A8A] text-white font-medium px-6 py-3 rounded-lg transition-all duration-150 shadow-sm hover:shadow-md"
+                        className="bg-[#14B8A6] hover:bg-[#0F9488] active:bg-[#0D8478] text-white font-medium px-6 py-3 rounded-xl transition-all duration-250 shadow-sm hover:shadow-md"
                       >
                         {isSaving ? (
                           <>
@@ -542,7 +542,7 @@ export default function ClientProfilePage() {
                       <Button
                         variant="outline"
                         onClick={handleCancel}
-                        className="border border-[#94A3B8]/30 hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 text-[#0F172A] font-medium px-6 py-3 rounded-lg transition-all duration-150 bg-transparent"
+                        className="border-[#E5E7EB] hover:border-[#14B8A6] hover:bg-[#14B8A6]/5 text-[#1A1D29] font-medium px-6 py-3 rounded-xl transition-all duration-250 bg-white"
                       >
                         <MaterialIcon name="close" className="text-lg mr-2" />
                         Cancelar
@@ -553,7 +553,7 @@ export default function ClientProfilePage() {
                   <Button
                     variant="outline"
                     onClick={() => router.push(`/clientes/${client.id}/historial`)}
-                    className="border border-[#94A3B8]/30 hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 text-[#0F172A] font-medium px-6 py-3 rounded-lg transition-all duration-150"
+                    className="border-[#E5E7EB] hover:border-[#14B8A6] hover:bg-[#14B8A6]/5 text-[#1A1D29] font-medium px-6 py-3 rounded-xl transition-all duration-250 bg-white"
                   >
                     <MaterialIcon name="history" className="text-lg mr-2" />
                     Historial
@@ -563,7 +563,7 @@ export default function ClientProfilePage() {
                     <AlertDialogTrigger asChild>
                       <Button
                         variant="outline"
-                        className="border border-red-200 hover:border-red-300 hover:bg-red-50 text-red-600 font-medium px-6 py-3 rounded-lg transition-all duration-150 bg-transparent"
+                        className="border-red-200 hover:border-red-300 hover:bg-red-50 text-red-600 font-medium px-6 py-3 rounded-xl transition-all duration-250 bg-white"
                       >
                         <MaterialIcon name="delete" className="text-lg mr-2" />
                         Eliminar cliente
@@ -591,7 +591,7 @@ export default function ClientProfilePage() {
                       <Button
                         variant="outline"
                         size="icon"
-                        className="border border-[#94A3B8]/30 hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 text-[#0F172A] w-12 h-12 rounded-lg transition-all duration-150 bg-transparent"
+                        className="border-[#E5E7EB] hover:border-[#14B8A6] hover:bg-[#14B8A6]/5 text-[#1A1D29] w-12 h-12 rounded-xl transition-all duration-250 bg-white"
                       >
                         <MaterialIcon name="more_vert" className="text-lg" />
                       </Button>
@@ -615,84 +615,84 @@ export default function ClientProfilePage() {
               </div>
             </Card>
 
-            <Card className="bg-white rounded-xl shadow-sm border-0 p-8 hover:shadow-md transition-shadow duration-200">
-              <CardHeader className="p-0 mb-6">
-                <CardTitle className="text-xl font-semibold text-[#0F172A] leading-snug flex items-center gap-3">
-                  <MaterialIcon name="person" className="text-2xl text-[#1E40AF]" />
+            <Card className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border-0 p-8">
+              <CardHeader className="p-0 mb-8">
+                <CardTitle className="text-xl font-semibold text-[#1A1D29] flex items-center gap-3">
+                  <MaterialIcon name="person" className="text-2xl text-[#14B8A6]" />
                   Información Personal
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Nombre completo *</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-[#6B7280] block">Nombre completo *</Label>
                     {isEditing ? (
                       <Input
                         value={client.nombre}
                         onChange={(e) => handleInputChange("nombre", e.target.value)}
-                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white transition-all duration-150"
+                        className="border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl px-4 py-3 text-[#1A1D29] placeholder-[#6B7280] bg-white transition-all duration-250"
                       />
                     ) : (
-                      <p className="text-[#0F172A] font-medium">{client.nombre}</p>
+                      <p className="text-base font-normal text-[#1A1D29]">{client.nombre}</p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Email *</Label>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-[#6B7280] block">Email *</Label>
                     {isEditing ? (
                       <Input
                         type="email"
                         value={client.email}
                         onChange={(e) => handleInputChange("email", e.target.value)}
-                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white transition-all duration-150"
+                        className="border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl px-4 py-3 text-[#1A1D29] placeholder-[#6B7280] bg-white transition-all duration-250"
                       />
                     ) : (
-                      <p className="text-[#0F172A] font-medium">{client.email}</p>
+                      <p className="text-base font-normal text-[#1A1D29]">{client.email}</p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Teléfono *</Label>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-[#6B7280] block">Teléfono *</Label>
                     {isEditing ? (
                       <Input
                         value={client.telefono}
                         onChange={(e) => handleInputChange("telefono", e.target.value)}
-                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white transition-all duration-150"
+                        className="border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl px-4 py-3 text-[#1A1D29] placeholder-[#6B7280] bg-white transition-all duration-250"
                       />
                     ) : (
-                      <p className="text-[#0F172A] font-medium">{client.telefono}</p>
+                      <p className="text-base font-normal text-[#1A1D29]">{client.telefono}</p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Fecha de nacimiento</Label>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-[#6B7280] block">Fecha de nacimiento</Label>
                     {isEditing ? (
                       <Input
                         type="date"
                         value={client.fechaNacimiento}
                         onChange={(e) => handleInputChange("fechaNacimiento", e.target.value)}
-                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white transition-all duration-150"
+                        className="border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl px-4 py-3 text-[#1A1D29] placeholder-[#6B7280] bg-white transition-all duration-250"
                       />
                     ) : (
-                      <p className="text-[#0F172A] font-medium">
+                      <p className="text-base font-normal text-[#1A1D29]">
                         {new Date(client.fechaNacimiento).toLocaleDateString("es-ES")}
                       </p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">DNI/NIE</Label>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-[#6B7280] block">DNI/NIE</Label>
                     {isEditing ? (
                       <Input
                         value={client.dni}
                         onChange={(e) => handleInputChange("dni", e.target.value)}
-                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white transition-all duration-150"
+                        className="border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl px-4 py-3 text-[#1A1D29] placeholder-[#6B7280] bg-white transition-all duration-250"
                       />
                     ) : (
-                      <p className="text-[#0F172A] font-medium">{client.dni}</p>
+                      <p className="text-base font-normal text-[#1A1D29]">{client.dni}</p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Categoría</Label>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-[#6B7280] block">Categoría</Label>
                     {isEditing ? (
                       <Select value={client.categoria} onValueChange={(value) => handleInputChange("categoria", value)}>
-                        <SelectTrigger className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] bg-white transition-all duration-150">
+                        <SelectTrigger className="border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl px-4 py-3 text-[#1A1D29] bg-white transition-all duration-250">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -704,62 +704,62 @@ export default function ClientProfilePage() {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-[#0F172A] font-medium">{client.categoria}</p>
+                      <p className="text-base font-normal text-[#1A1D29]">{client.categoria}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Dirección completa</Label>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-[#6B7280] block">Dirección completa</Label>
                     {isEditing ? (
                       <Textarea
                         value={client.direccion}
                         onChange={(e) => handleInputChange("direccion", e.target.value)}
-                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white resize-none transition-all duration-150"
+                        className="border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl px-4 py-3 text-[#1A1D29] placeholder-[#6B7280] bg-white resize-none transition-all duration-250"
                         rows={2}
                       />
                     ) : (
-                      <p className="text-[#0F172A] font-medium">{client.direccion}</p>
+                      <p className="text-base font-normal text-[#1A1D29]">{client.direccion}</p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-[#0F172A] mb-2 block">Contacto de emergencia</Label>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-[#6B7280] block">Contacto de emergencia</Label>
                     {isEditing ? (
                       <Input
                         value={client.contactoEmergencia}
                         onChange={(e) => handleInputChange("contactoEmergencia", e.target.value)}
                         placeholder="Nombre - Teléfono"
-                        className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] placeholder-[#94A3B8] bg-white transition-all duration-150"
+                        className="border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl px-4 py-3 text-[#1A1D29] placeholder-[#6B7280] bg-white transition-all duration-250"
                       />
                     ) : (
-                      <p className="text-[#0F172A] font-medium">{client.contactoEmergencia}</p>
+                      <p className="text-base font-normal text-[#1A1D29]">{client.contactoEmergencia}</p>
                     )}
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white rounded-xl shadow-sm border-0 p-8 hover:shadow-md transition-shadow duration-200">
-              <CardHeader className="p-0 mb-6">
-                <CardTitle className="text-xl font-semibold text-[#0F172A] leading-snug flex items-center gap-3">
-                  <MaterialIcon name="inventory" className="text-2xl text-[#1E40AF]" />
+            <Card className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border-0 p-8">
+              <CardHeader className="p-0 mb-8">
+                <CardTitle className="text-xl font-semibold text-[#1A1D29] flex items-center gap-3">
+                  <MaterialIcon name="inventory" className="text-2xl text-[#14B8A6]" />
                   Paquetes Adquiridos
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 space-y-4">
+              <CardContent className="p-0 space-y-8">
                 {client.paquetes.map((paquete) => (
                   <div
                     key={paquete.id}
-                    className="bg-white/50 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:shadow-sm transition-shadow"
+                    className="bg-white rounded-xl p-6 border border-[#E5E7EB] hover:shadow-sm transition-shadow"
                   >
-                    <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-8">
                       {/* Package details on left */}
                       <div className="flex-1 space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="font-semibold text-[#0F172A] text-lg">{paquete.nombre}</h4>
-                            <p className="text-sm text-[#94A3B8]">
+                            <h4 className="font-semibold text-[#1A1D29] text-lg">{paquete.nombre}</h4>
+                            <p className="text-sm text-[#6B7280]">
                               {paquete.instructor && `Instructor: ${paquete.instructor}`} • {paquete.tipoClase}
                             </p>
                           </div>
@@ -772,24 +772,24 @@ export default function ClientProfilePage() {
 
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                           <div>
-                            <p className="text-[#94A3B8]">Comprado</p>
-                            <p className="text-[#0F172A] font-medium">
+                            <p className="text-[#6B7280]">Comprado</p>
+                            <p className="text-[#1A1D29] font-medium">
                               {new Date(paquete.fechaCompra).toLocaleDateString("es-ES")}
                             </p>
                           </div>
                           <div>
-                            <p className="text-[#94A3B8]">Vence</p>
-                            <p className="text-[#0F172A] font-medium">
+                            <p className="text-[#6B7280]">Vence</p>
+                            <p className="text-[#1A1D29] font-medium">
                               {new Date(paquete.fechaVencimiento).toLocaleDateString("es-ES")}
                             </p>
                           </div>
                           <div>
-                            <p className="text-[#94A3B8]">Plan</p>
-                            <p className="text-[#0F172A] font-medium">{paquete.planPago}</p>
+                            <p className="text-[#6B7280]">Plan</p>
+                            <p className="text-[#1A1D29] font-medium">{paquete.planPago}</p>
                           </div>
                           <div>
-                            <p className="text-[#94A3B8]">Precio</p>
-                            <p className="text-[#0F172A] font-medium">€{paquete.precio}</p>
+                            <p className="text-[#6B7280]">Precio</p>
+                            <p className="text-[#1A1D29] font-medium">€{paquete.precio}</p>
                           </div>
                         </div>
                       </div>
@@ -797,8 +797,8 @@ export default function ClientProfilePage() {
                       {/* Progress bar in center */}
                       <div className="lg:w-48 space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-[#94A3B8]">Progreso</span>
-                          <span className="text-[#0F172A] font-medium">
+                          <span className="text-[#6B7280]">Progreso</span>
+                          <span className="text-[#1A1D29] font-medium">
                             {paquete.clasesUtilizadas} / {paquete.clasesTotales}
                           </span>
                         </div>
@@ -830,7 +830,7 @@ export default function ClientProfilePage() {
                             {paquete.metodoPago && (
                               <MaterialIcon
                                 name={getPaymentMethodIcon(paquete.metodoPago)}
-                                className="text-sm text-[#94A3B8]"
+                                className="text-sm text-[#6B7280]"
                               />
                             )}
                             {paquete.autoRenovacion && (
@@ -848,7 +848,7 @@ export default function ClientProfilePage() {
                             <Button
                               size="sm"
                               onClick={() => handleOpenAttendanceModal(paquete.id)}
-                              className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 h-7 flex-1"
+                              className="bg-[#14B8A6] hover:bg-[#0F9488] text-white text-xs px-3 py-1 h-7 flex-1 rounded-lg"
                             >
                               <MaterialIcon name="check" className="text-sm mr-1" />
                               Marcar
@@ -858,7 +858,7 @@ export default function ClientProfilePage() {
                             <Button
                               size="sm"
                               onClick={() => handleOpenPaymentModal(paquete.id)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 h-7 flex-1"
+                              className="bg-[#14B8A6] hover:bg-[#0F9488] text-white text-xs px-3 py-1 h-7 flex-1 rounded-lg"
                             >
                               <MaterialIcon name="payment" className="text-sm mr-1" />
                               Pagar
@@ -867,7 +867,7 @@ export default function ClientProfilePage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-xs px-3 py-1 h-7 border-gray-200 hover:border-gray-300 bg-transparent"
+                            className="text-xs px-3 py-1 h-7 border-[#E5E7EB] hover:border-[#14B8A6] bg-white rounded-lg"
                           >
                             <MaterialIcon name="receipt" className="text-sm mr-1" />
                             Factura
@@ -875,7 +875,7 @@ export default function ClientProfilePage() {
                         </div>
 
                         {paquete.proximoPago && (
-                          <div className="text-xs text-[#94A3B8]">
+                          <div className="text-xs text-[#6B7280]">
                             Próximo pago: {new Date(paquete.proximoPago).toLocaleDateString("es-ES")}
                           </div>
                         )}
@@ -886,21 +886,21 @@ export default function ClientProfilePage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white rounded-xl shadow-sm border-0 p-8 hover:shadow-md transition-shadow duration-200">
-              <CardHeader className="p-0 mb-6">
-                <CardTitle className="text-xl font-semibold text-[#0F172A] leading-snug flex items-center gap-3">
-                  <MaterialIcon name="analytics" className="text-2xl text-[#1E40AF]" />
+            <Card className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border-0 p-8">
+              <CardHeader className="p-0 mb-8">
+                <CardTitle className="text-xl font-semibold text-[#1A1D29] flex items-center gap-3">
+                  <MaterialIcon name="analytics" className="text-2xl text-[#14B8A6]" />
                   Resumen de Actividad
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                  <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-6 border border-teal-200">
                     <div className="flex items-center gap-3 mb-2">
-                      <MaterialIcon name="fitness_center" className="text-2xl text-blue-600" />
-                      <span className="text-sm font-medium text-blue-800">Clases Restantes</span>
+                      <MaterialIcon name="fitness_center" className="text-2xl text-teal-600" />
+                      <span className="text-sm font-medium text-teal-800">Clases Restantes</span>
                     </div>
-                    <p className="text-3xl font-bold text-blue-900">{getTotalClassesRemaining()}</p>
+                    <p className="text-3xl font-bold text-teal-900">{getTotalClassesRemaining()}</p>
                   </div>
 
                   <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
@@ -931,14 +931,14 @@ export default function ClientProfilePage() {
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-[#0F172A] text-lg">Actividad Reciente</h4>
+                  <h4 className="font-semibold text-[#1A1D29] text-lg">Actividad Reciente</h4>
                   <div className="space-y-3">
                     {client.historialAsistencia.slice(0, 5).map((asistencia) => (
                       <div key={asistencia.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
                         <MaterialIcon name="check_circle" className="text-green-600 text-xl" />
                         <div className="flex-1">
-                          <p className="font-medium text-[#0F172A]">{asistencia.paqueteNombre}</p>
-                          <p className="text-sm text-[#94A3B8]">
+                          <p className="font-medium text-[#1A1D29]">{asistencia.paqueteNombre}</p>
+                          <p className="text-sm text-[#6B7280]">
                             {new Date(asistencia.fecha).toLocaleDateString("es-ES")} • {asistencia.instructor} •{" "}
                             {asistencia.tipoClase}
                           </p>
@@ -959,30 +959,30 @@ export default function ClientProfilePage() {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-[#0F172A]">Marcar Asistencia</DialogTitle>
-            <DialogDescription className="text-[#94A3B8]">
+            <DialogTitle className="text-xl font-semibold text-[#1A1D29]">Marcar Asistencia</DialogTitle>
+            <DialogDescription className="text-[#6B7280]">
               Registra la asistencia a una clase del paquete seleccionado.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-[#0F172A]">Fecha de la clase</Label>
+              <Label className="text-sm font-medium text-[#1A1D29]">Fecha de la clase</Label>
               <Input
                 type="date"
                 value={attendanceModal.date}
                 onChange={(e) => setAttendanceModal((prev) => ({ ...prev, date: e.target.value }))}
-                className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3"
+                className="border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl px-4 py-3"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-[#0F172A]">Instructor</Label>
+              <Label className="text-sm font-medium text-[#1A1D29]">Instructor</Label>
               <Select
                 value={attendanceModal.instructor}
                 onValueChange={(value) => setAttendanceModal((prev) => ({ ...prev, instructor: value }))}
               >
-                <SelectTrigger className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3">
+                <SelectTrigger className="border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl px-4 py-3">
                   <SelectValue placeholder="Seleccionar instructor" />
                 </SelectTrigger>
                 <SelectContent>
@@ -995,12 +995,12 @@ export default function ClientProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-[#0F172A]">Comentarios (opcional)</Label>
+              <Label className="text-sm font-medium text-[#1A1D29]">Comentarios (opcional)</Label>
               <Textarea
                 value={attendanceModal.comments}
                 onChange={(e) => setAttendanceModal((prev) => ({ ...prev, comments: e.target.value }))}
                 placeholder="Notas sobre la clase, progreso del alumno, etc."
-                className="border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 resize-none"
+                className="border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl px-4 py-3 resize-none"
                 rows={3}
               />
             </div>
@@ -1010,11 +1010,11 @@ export default function ClientProfilePage() {
             <Button
               variant="outline"
               onClick={() => setAttendanceModal((prev) => ({ ...prev, isOpen: false }))}
-              className="border border-[#94A3B8]/30 hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 text-[#0F172A]"
+              className="border-[#E5E7EB] hover:border-[#14B8A6] hover:bg-[#14B8A6]/5 text-[#1A1D29]"
             >
               Cancelar
             </Button>
-            <Button onClick={handleMarkAttendance} className="bg-[#1E40AF] hover:bg-[#1D4ED8] text-white">
+            <Button onClick={handleMarkAttendance} className="bg-[#14B8A6] hover:bg-[#0F9488] text-white">
               <MaterialIcon name="check" className="text-lg mr-2" />
               Marcar Asistencia
             </Button>
@@ -1028,8 +1028,8 @@ export default function ClientProfilePage() {
       >
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-[#0F172A]">Gestión de Pagos</DialogTitle>
-            <DialogDescription className="text-[#94A3B8]">
+            <DialogTitle className="text-xl font-semibold text-[#1A1D29]">Gestión de Pagos</DialogTitle>
+            <DialogDescription className="text-[#6B7280]">
               Procesa pagos y gestiona comprobantes para el paquete seleccionado.
             </DialogDescription>
           </DialogHeader>
@@ -1044,12 +1044,12 @@ export default function ClientProfilePage() {
             <TabsContent value="payment" className="space-y-4 mt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-[#0F172A]">Método de pago</Label>
+                  <Label className="text-sm font-medium text-[#1A1D29]">Método de pago</Label>
                   <Select
                     value={paymentModal.metodo}
                     onValueChange={(value) => setPaymentModal((prev) => ({ ...prev, metodo: value as any }))}
                   >
-                    <SelectTrigger className="border border-[#94A3B8]/30 focus:border-[#1E40AF]">
+                    <SelectTrigger className="border-[#E5E7EB] focus:border-[#14B8A6]">
                       <SelectValue placeholder="Seleccionar método" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1088,23 +1088,23 @@ export default function ClientProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-[#0F172A]">Cantidad</Label>
+                  <Label className="text-sm font-medium text-[#1A1D29]">Cantidad</Label>
                   <Input
                     type="number"
                     value={paymentModal.cantidad}
                     onChange={(e) => setPaymentModal((prev) => ({ ...prev, cantidad: Number(e.target.value) }))}
-                    className="border border-[#94A3B8]/30 focus:border-[#1E40AF]"
+                    className="border-[#E5E7EB] focus:border-[#14B8A6]"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-[#0F172A]">Notas adicionales</Label>
+                <Label className="text-sm font-medium text-[#1A1D29]">Notas adicionales</Label>
                 <Textarea
                   value={paymentModal.notas}
                   onChange={(e) => setPaymentModal((prev) => ({ ...prev, notas: e.target.value }))}
                   placeholder="Información adicional sobre el pago..."
-                  className="border border-[#94A3B8]/30 focus:border-[#1E40AF] resize-none"
+                  className="border-[#E5E7EB] focus:border-[#14B8A6] resize-none"
                   rows={3}
                 />
               </div>
@@ -1112,7 +1112,7 @@ export default function ClientProfilePage() {
 
             <TabsContent value="receipts" className="space-y-4 mt-6">
               <div className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <div className="border-2 border-dashed border-[#E5E7EB] rounded-xl p-6 text-center">
                   <MaterialIcon name="cloud_upload" className="text-4xl text-gray-400 mb-2" />
                   <p className="text-sm text-gray-600 mb-2">Arrastra y suelta el comprobante aquí</p>
                   <p className="text-xs text-gray-500 mb-4">o</p>
@@ -1134,8 +1134,8 @@ export default function ClientProfilePage() {
                     <div className="flex items-center gap-3">
                       <MaterialIcon name="description" className="text-2xl text-blue-600" />
                       <div>
-                        <p className="font-medium text-[#0F172A]">{paymentModal.comprobante.name}</p>
-                        <p className="text-sm text-[#94A3B8]">
+                        <p className="font-medium text-[#1A1D29]">{paymentModal.comprobante.name}</p>
+                        <p className="text-sm text-[#6B7280]">
                           {(paymentModal.comprobante.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
@@ -1162,7 +1162,7 @@ export default function ClientProfilePage() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <MaterialIcon name={getPaymentMethodIcon(pago.metodo)} className="text-sm text-gray-600" />
-                          <span className="font-medium text-[#0F172A]">€{pago.cantidad}</span>
+                          <span className="font-medium text-[#1A1D29]">€{pago.cantidad}</span>
                           <Badge
                             variant="secondary"
                             className={
@@ -1188,7 +1188,7 @@ export default function ClientProfilePage() {
                           )}
                         </div>
                       </div>
-                      <div className="text-sm text-[#94A3B8]">
+                      <div className="text-sm text-[#6B7280]">
                         {new Date(pago.fecha).toLocaleDateString("es-ES")} • {pago.metodo}
                       </div>
                     </div>
@@ -1201,11 +1201,11 @@ export default function ClientProfilePage() {
             <Button
               variant="outline"
               onClick={() => setPaymentModal((prev) => ({ ...prev, isOpen: false }))}
-              className="border border-[#94A3B8]/30 hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 text-[#0F172A]"
+              className="border-[#E5E7EB] hover:border-[#14B8A6] hover:bg-[#14B8A6]/5 text-[#1A1D29]"
             >
               Cancelar
             </Button>
-            <Button onClick={handleProcessPayment} className="bg-[#1E40AF] hover:bg-[#1D4ED8] text-white">
+            <Button onClick={handleProcessPayment} className="bg-[#14B8A6] hover:bg-[#0F9488] text-white">
               <MaterialIcon name="payment" className="text-lg mr-2" />
               Procesar Pago
             </Button>

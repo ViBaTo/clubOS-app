@@ -138,43 +138,45 @@ export function MembersDirectory() {
 
   return (
     <>
-      <div className="flex-1 space-y-6 p-8">
+      <div className="flex-1 space-y-8 p-8 bg-[#FAFBFC]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <MaterialIcon name="group" className="text-2xl text-primary" />
-            <h1 className="text-5xl font-bold text-[#0F172A] leading-tight tracking-tight">Clientes</h1>
+            {/* Increased icon size and color */}
+            <MaterialIcon name="group" className="text-2xl text-[#14B8A6]" />
+            <h1 className="text-3xl font-bold text-[#1A1D29] leading-tight tracking-tight">Clientes</h1>
           </div>
           <Button
             onClick={() => setIsModalOpen(true)}
-            className="bg-[#1E40AF] hover:bg-[#1D4ED8] active:bg-[#1E3A8A] text-white font-medium px-6 py-3 rounded-lg transition-all duration-150 shadow-sm hover:shadow-md"
+            className="bg-[#14B8A6] hover:bg-[#0F9488] active:bg-[#0D8478] text-white font-medium px-8 py-3.5 rounded-xl transition-all duration-250 shadow-sm hover:shadow-md"
           >
-            <MaterialIcon name="add" className="text-lg mr-2" />
+            <MaterialIcon name="add" className="text-xl mr-2" />
             Agregar Cliente
           </Button>
         </div>
 
-        <Card>
-          <CardHeader className="p-0">
-            <CardTitle className="text-xl font-semibold text-[#0F172A] leading-snug">Buscar y Filtrar</CardTitle>
+        <Card className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border-0">
+          <CardHeader className="px-8 pt-8 pb-6">
+            <CardTitle className="text-xl font-semibold text-[#1A1D29]">Buscar y Filtrar</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="px-8 pb-8">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1">
                 <div className="relative">
+                  {/* Increased icon size and color */}
                   <MaterialIcon
                     name="search"
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#6B7280] text-xl"
                   />
                   <Input
                     placeholder="Buscar por nombre o teléfono..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-12 h-12 border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl text-[#1A1D29] placeholder-[#6B7280] transition-all duration-250"
                   />
                 </div>
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full md:w-48">
+                <SelectTrigger className="w-full md:w-56 h-12 border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl transition-all duration-250">
                   <SelectValue placeholder="Estado" />
                 </SelectTrigger>
                 <SelectContent>
@@ -184,7 +186,7 @@ export function MembersDirectory() {
                 </SelectContent>
               </Select>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full md:w-48">
+                <SelectTrigger className="w-full md:w-56 h-12 border-[#E5E7EB] focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 rounded-xl transition-all duration-250">
                   <SelectValue placeholder="Categoría" />
                 </SelectTrigger>
                 <SelectContent>
@@ -200,60 +202,74 @@ export function MembersDirectory() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="p-0">
-            <CardTitle className="text-xl font-semibold text-[#0F172A] leading-snug">
+        <Card className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border-0">
+          <CardHeader className="px-8 pt-8 pb-6">
+            <CardTitle className="text-xl font-semibold text-[#1A1D29]">
               Directorio de Clientes ({filteredMembers.length})
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="rounded-md border border-[#94A3B8]/20">
+          <CardContent className="px-8 pb-8">
+            <div className="rounded-xl overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs font-medium text-[#94A3B8] uppercase tracking-wide">
+                  <TableRow className="border-b border-[#E5E7EB] hover:bg-transparent">
+                    <TableHead className="text-xs font-medium text-[#6B7280] uppercase tracking-wider h-12">
                       Cliente
                     </TableHead>
-                    <TableHead className="text-xs font-medium text-[#94A3B8] uppercase tracking-wide">
+                    <TableHead className="text-xs font-medium text-[#6B7280] uppercase tracking-wider h-12">
                       Teléfono
                     </TableHead>
-                    <TableHead className="text-xs font-medium text-[#94A3B8] uppercase tracking-wide">
+                    <TableHead className="text-xs font-medium text-[#6B7280] uppercase tracking-wider h-12">
                       Categoría
                     </TableHead>
-                    <TableHead className="text-xs font-medium text-[#94A3B8] uppercase tracking-wide">Estado</TableHead>
-                    <TableHead className="text-right text-xs font-medium text-[#94A3B8] uppercase tracking-wide">
+                    <TableHead className="text-xs font-medium text-[#6B7280] uppercase tracking-wider h-12">
+                      Estado
+                    </TableHead>
+                    <TableHead className="text-right text-xs font-medium text-[#6B7280] uppercase tracking-wider h-12">
                       Acciones
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredMembers.map((member) => (
-                    <TableRow key={member.id} className="hover:bg-muted/50 border-b border-[#94A3B8]/20">
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
+                    /* Increased row height to 64px, removed border, subtle hover background */
+                    <TableRow
+                      key={member.id}
+                      className="border-b border-[#E5E7EB] last:border-0 hover:bg-[#FAFBFC] transition-colors duration-250 h-16"
+                    >
+                      <TableCell className="py-4">
+                        <div className="flex items-center gap-4">
+                          <Avatar className="h-12 w-12 ring-2 ring-white shadow-sm">
                             <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.nombre} />
-                            <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                            <AvatarFallback className="bg-[#14B8A6]/10 text-[#14B8A6] font-semibold text-sm">
                               {getInitials(member.nombre)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="text-base font-normal text-[#64748B] leading-relaxed font-medium">
-                              {member.nombre}
-                            </div>
+                            <div className="text-base font-normal text-[#1A1D29]">{member.nombre}</div>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm font-normal text-[#94A3B8] leading-normal">
-                        {member.telefono}
-                      </TableCell>
+                      <TableCell className="text-sm font-normal text-[#6B7280]">{member.telefono}</TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className={getCategoryBadgeColor(member.categoria)}>
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            getCategoryBadgeColor(member.categoria),
+                            "rounded-full px-3 py-1 text-xs font-medium",
+                          )}
+                        >
                           {member.categoria}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className={getStatusBadgeColor(member.estado)}>
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            getStatusBadgeColor(member.estado),
+                            "rounded-full px-3 py-1 text-xs font-medium",
+                          )}
+                        >
                           {member.estado}
                         </Badge>
                       </TableCell>
@@ -262,30 +278,24 @@ export function MembersDirectory() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-[#1E40AF] hover:bg-[#1E40AF]/5 font-medium rounded-lg transition-all duration-150"
+                            className="h-10 w-10 p-0 hover:bg-[#14B8A6]/10 rounded-xl transition-all duration-250"
                             onClick={() => handleViewProfile(member.id)}
                           >
-                            <MaterialIcon
-                              name="visibility"
-                              className="text-base text-muted-foreground hover:text-foreground"
-                            />
+                            <MaterialIcon name="visibility" className="text-xl text-[#6B7280] hover:text-[#14B8A6]" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-[#1E40AF] hover:bg-[#1E40AF]/5 font-medium rounded-lg transition-all duration-150"
+                            className="h-10 w-10 p-0 hover:bg-[#14B8A6]/10 rounded-xl transition-all duration-250"
                           >
-                            <MaterialIcon
-                              name="edit"
-                              className="text-base text-muted-foreground hover:text-foreground"
-                            />
+                            <MaterialIcon name="edit" className="text-xl text-[#6B7280] hover:text-[#14B8A6]" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-red-600 hover:bg-red-600/5 font-medium rounded-lg transition-all duration-150"
+                            className="h-10 w-10 p-0 hover:bg-red-50 rounded-xl transition-all duration-250"
                           >
-                            <MaterialIcon name="delete" className="text-base text-red-600 hover:text-red-700" />
+                            <MaterialIcon name="delete" className="text-xl text-[#6B7280] hover:text-red-600" />
                           </Button>
                         </div>
                       </TableCell>
@@ -297,28 +307,42 @@ export function MembersDirectory() {
           </CardContent>
         </Card>
 
+        {/* Mobile view - keeping existing functionality */}
         <div className="md:hidden space-y-6">
           {filteredMembers.map((member) => (
-            <Card key={`mobile-${member.id}`}>
-              <CardContent className="p-0">
+            <Card
+              key={`mobile-${member.id}`}
+              className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border-0"
+            >
+              <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
+                    <Avatar className="h-12 w-12 ring-2 ring-white shadow-sm">
                       <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.nombre} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                      <AvatarFallback className="bg-[#14B8A6]/10 text-[#14B8A6] font-semibold text-sm">
                         {getInitials(member.nombre)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="text-base font-normal text-[#64748B] leading-relaxed font-medium">
-                        {member.nombre}
-                      </div>
-                      <div className="text-sm font-normal text-[#94A3B8] leading-normal">{member.telefono}</div>
+                      <div className="text-base font-normal text-[#1A1D29]">{member.nombre}</div>
+                      <div className="text-sm font-normal text-[#6B7280]">{member.telefono}</div>
                       <div className="flex gap-2 mt-2">
-                        <Badge variant="secondary" className={getCategoryBadgeColor(member.categoria)}>
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            getCategoryBadgeColor(member.categoria),
+                            "rounded-full px-3 py-1 text-xs font-medium",
+                          )}
+                        >
                           {member.categoria}
                         </Badge>
-                        <Badge variant="secondary" className={getStatusBadgeColor(member.estado)}>
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            getStatusBadgeColor(member.estado),
+                            "rounded-full px-3 py-1 text-xs font-medium",
+                          )}
+                        >
                           {member.estado}
                         </Badge>
                       </div>
@@ -328,24 +352,24 @@ export function MembersDirectory() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 text-[#1E40AF] hover:bg-[#1E40AF]/5 font-medium rounded-lg transition-all duration-150"
+                      className="h-10 w-10 p-0 hover:bg-[#14B8A6]/10 rounded-xl transition-all duration-250"
                       onClick={() => handleViewProfile(member.id)}
                     >
-                      <MaterialIcon name="visibility" className="text-base text-muted-foreground" />
+                      <MaterialIcon name="visibility" className="text-xl text-[#6B7280]" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 text-[#1E40AF] hover:bg-[#1E40AF]/5 font-medium rounded-lg transition-all duration-150"
+                      className="h-10 w-10 p-0 hover:bg-[#14B8A6]/10 rounded-xl transition-all duration-250"
                     >
-                      <MaterialIcon name="edit" className="text-base text-muted-foreground" />
+                      <MaterialIcon name="edit" className="text-xl text-[#6B7280]" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 text-red-600 hover:bg-red-600/5 font-medium rounded-lg transition-all duration-150"
+                      className="h-10 w-10 p-0 hover:bg-red-50 rounded-xl transition-all duration-250"
                     >
-                      <MaterialIcon name="delete" className="text-base text-red-600" />
+                      <MaterialIcon name="delete" className="text-xl text-[#6B7280]" />
                     </Button>
                   </div>
                 </div>
