@@ -21,10 +21,13 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+
+import { Alert, AlertDescription } from '../../../components/ui/alert'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Eye, EyeOff, Info } from 'lucide-react'
+import { getSupabaseClient, isSupabaseConfigured } from '@/src/lib/supabaseClient'
+import { useToast } from '@/hooks/use-toast'
 
 const ROLES = [
   'Gestor',
@@ -36,6 +39,7 @@ const ROLES = [
 
 export default function UnirsePage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -58,12 +62,29 @@ export default function UnirsePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    // Simulate registration process
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    setIsLoading(false)
-    router.push('/registro/exito?type=unirse')
+    try {
+      if (formData.password !== formData.confirmPassword) {
+        toast({ title: 'Las contraseñas no coinciden' })
+        return
+      }
+      const supabase = getSupabaseClient()
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: { full_name: formData.fullName, phone: formData.phone },
+        },
+      })
+      if (error) {
+        toast({ title: 'No se pudo crear la cuenta', description: error.message })
+        return
+      }
+      if (data?.user) {
+        router.push('/registro/exito?type=unirse')
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const getPasswordStrength = (password: string) => {
@@ -108,7 +129,12 @@ export default function UnirsePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className='pt-2'>
-            <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-6'>
+            {!isSupabaseConfigured() ? (
+              <div className='text-sm text-red-600'>
+                Falta configuración de entorno. Define `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-6'>
               {/* Columna izquierda: Información personal */}
               <div className='space-y-3'>
                 <div className='space-y-1'>
@@ -322,7 +348,8 @@ export default function UnirsePage() {
                   )}
                 </Button>
               </div>
-            </form>
+              </form>
+            )}
           </CardContent>
         </Card>
       </div>

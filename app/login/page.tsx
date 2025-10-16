@@ -10,8 +10,13 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { getSupabaseClient, isSupabaseConfigured } from "@/src/lib/supabaseClient"
+import { useToast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
+  const router = useRouter()
+  const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -23,12 +28,25 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    // Simulate login process
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    setIsLoading(false)
-    // Handle login logic here
+    try {
+      const supabase = getSupabaseClient()
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      })
+      if (error) {
+        toast({
+          title: "No se pudo iniciar sesión",
+          description: error.message,
+        })
+        return
+      }
+      if (data?.user) {
+        router.push("/dashboard")
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -56,7 +74,12 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {!isSupabaseConfigured() ? (
+              <div className="text-sm text-red-600">
+                Falta configuración de entorno. Define `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email/Username Field */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
@@ -138,7 +161,8 @@ export default function LoginPage() {
                   ¿Olvidaste tu contraseña?
                 </button>
               </div>
-            </form>
+              </form>
+            )}
           </CardContent>
         </Card>
 
