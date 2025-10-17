@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ClientAvatar } from "@/components/ui/client-avatar"
 import { cn } from "@/lib/utils"
 import { CreateClientModal } from "@/src/components/clients/create-client-modal"
 import { getSupabaseClient } from "@/src/lib/supabaseClient"
@@ -108,13 +108,8 @@ const getStatusBadgeColor = (estado: Member["estado"]) => {
     : "bg-gray-100 text-gray-800 hover:bg-gray-200"
 }
 
-const getInitials = (nombre: string) => {
-  return nombre
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .substring(0, 2)
-    .toUpperCase()
+const getFirstName = (nombre: string) => {
+  return nombre.split(" ")[0] || nombre
 }
 
 export function MembersDirectory() {
@@ -271,12 +266,11 @@ export function MembersDirectory() {
                     <TableRow key={member.id} className="hover:bg-muted/50 border-b border-[#94A3B8]/20">
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.nombre} />
-                            <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                              {getInitials(member.nombre)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <ClientAvatar 
+                            firstName={getFirstName(member.nombre)}
+                            imageUrl={member.avatar}
+                            size="md"
+                          />
                           <div>
                             <div className="text-base font-normal text-[#64748B] leading-relaxed font-medium">
                               {member.nombre}
@@ -343,12 +337,11 @@ export function MembersDirectory() {
               <CardContent className="p-0">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.nombre} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                        {getInitials(member.nombre)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <ClientAvatar 
+                      firstName={getFirstName(member.nombre)}
+                      imageUrl={member.avatar}
+                      size="lg"
+                    />
                     <div>
                       <div className="text-base font-normal text-[#64748B] leading-relaxed font-medium">
                         {member.nombre}
