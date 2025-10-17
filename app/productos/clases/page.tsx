@@ -1,152 +1,61 @@
+"use client"
 import { Sidebar } from "@/src/components/layout/sidebar"
 import { Navbar } from "@/src/components/layout/navbar"
 import { ClassCard } from "@/src/components/products/class-card"
+import { useEffect, useState } from "react"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 
-// Mock data for classes
-const upcomingClasses = [
-  {
-    id: 1,
-    date: "2024-01-15",
-    time: "09:00",
-    type: "Clase particular",
-    instructor: "Carlos Martínez",
-    instructorAvatar: "/instructor-teaching.png",
-    court: "Pista 1",
-    level: "Intermedio",
-    price: 35,
-    availableSpots: 1,
-    totalSpots: 2,
-    status: "Disponible",
-  },
-  {
-    id: 2,
-    date: "2024-01-15",
-    time: "10:30",
-    type: "Clase grupal",
-    instructor: "Ana García",
-    instructorAvatar: "/female-instructor.png",
-    court: "Pista 2",
-    level: "Principiante",
-    price: 20,
-    availableSpots: 0,
-    totalSpots: 4,
-    status: "Completa",
-  },
-  {
-    id: 3,
-    date: "2024-01-15",
-    time: "12:00",
-    type: "Clínic",
-    instructor: "Miguel Rodríguez",
-    instructorAvatar: "/male-coach.png",
-    court: "Pista 3",
-    level: "Avanzado",
-    price: 45,
-    availableSpots: 3,
-    totalSpots: 6,
-    status: "Disponible",
-  },
-  {
-    id: 4,
-    date: "2024-01-15",
-    time: "16:00",
-    type: "Clase grupal",
-    instructor: "Laura Fernández",
-    instructorAvatar: "/young-female-instructor.jpg",
-    court: "Pista 1",
-    level: "Principiante",
-    price: 18,
-    availableSpots: 2,
-    totalSpots: 4,
-    status: "Disponible",
-  },
-  {
-    id: 5,
-    date: "2024-01-15",
-    time: "18:00",
-    type: "Clase particular",
-    instructor: "David López",
-    instructorAvatar: "/tactical-coach.jpg",
-    court: "Pista 2",
-    level: "Avanzado",
-    price: 40,
-    availableSpots: 0,
-    totalSpots: 2,
-    status: "Completa",
-  },
-  {
-    id: 6,
-    date: "2024-01-16",
-    time: "09:30",
-    type: "Clínic",
-    instructor: "Roberto Sánchez",
-    instructorAvatar: "/diverse-fitness-coach.png",
-    court: "Pista 3",
-    level: "Intermedio",
-    price: 35,
-    availableSpots: 4,
-    totalSpots: 8,
-    status: "Disponible",
-  },
-  {
-    id: 7,
-    date: "2024-01-16",
-    time: "11:00",
-    type: "Clase grupal",
-    instructor: "Carmen Ruiz",
-    instructorAvatar: "/female-padel-coach.jpg",
-    court: "Pista 1",
-    level: "Principiante",
-    price: 22,
-    availableSpots: 1,
-    totalSpots: 4,
-    status: "Disponible",
-  },
-  {
-    id: 8,
-    date: "2024-01-16",
-    time: "17:30",
-    type: "Clase particular",
-    instructor: "Javier Moreno",
-    instructorAvatar: "/weekend-coach.jpg",
-    court: "Pista 2",
-    level: "Avanzado",
-    price: 45,
-    availableSpots: 2,
-    totalSpots: 2,
-    status: "Disponible",
-  },
-  {
-    id: 9,
-    date: "2024-01-17",
-    time: "10:00",
-    type: "Clínic",
-    instructor: "Carlos Martínez",
-    instructorAvatar: "/instructor-teaching.png",
-    court: "Pista 3",
-    level: "Intermedio",
-    price: 38,
-    availableSpots: 0,
-    totalSpots: 6,
-    status: "Cancelada",
-  },
-  {
-    id: 10,
-    date: "2024-01-17",
-    time: "15:00",
-    type: "Clase grupal",
-    instructor: "Ana García",
-    instructorAvatar: "/female-instructor.png",
-    court: "Pista 1",
-    level: "Intermedio",
-    price: 25,
-    availableSpots: 3,
-    totalSpots: 4,
-    status: "Disponible",
-  },
-]
+interface ClassItem {
+  id: string
+  date: string
+  time: string
+  type: string
+  instructor: string
+  instructorAvatar: string
+  court: string
+  level: string
+  price: number
+  availableSpots: number
+  totalSpots: number
+  status: string
+}
 
 export default function ClasesPage() {
+  const [items, setItems] = useState<ClassItem[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const supabase = getSupabaseClient()
+        const session = (await supabase.auth.getSession()).data.session
+        const token = session?.access_token
+        const res = await fetch('/api/products?type=individual_class', {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error || 'Error loading classes')
+        const list: ClassItem[] = (json.products as any[]).map((p) => ({
+          id: p.id,
+          date: p.configuration?.date ?? new Date().toISOString().slice(0,10),
+          time: p.configuration?.time ?? '09:00',
+          type: p.configuration?.type ?? 'Clase particular',
+          instructor: p.configuration?.instructor ?? 'Instructor',
+          instructorAvatar: p.configuration?.instructorAvatar ?? '/placeholder.svg',
+          court: p.configuration?.court ?? 'Pista 1',
+          level: p.configuration?.level ?? 'Intermedio',
+          price: Number(p.price) || 0,
+          availableSpots: p.configuration?.availableSpots ?? 0,
+          totalSpots: p.configuration?.totalSpots ?? 0,
+          status: p.configuration?.status ?? 'Disponible',
+        }))
+        setItems(list)
+      } catch (e: any) {
+        setError(e.message)
+      }
+    }
+    load()
+  }, [])
   return (
     <div className="flex h-screen bg-[#F1F5F9]">
       <Sidebar />
@@ -196,9 +105,10 @@ export default function ClasesPage() {
             </div>
 
             {/* Classes grid */}
+            {error && <div className="text-sm text-red-600">{error}</div>}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {upcomingClasses.map((classItem) => (
-                <ClassCard key={classItem.id} classItem={classItem} />
+              {items.map((classItem) => (
+                <ClassCard key={classItem.id} classItem={classItem as any} />
               ))}
             </div>
           </div>

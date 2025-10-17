@@ -30,3 +30,4 @@ next-env.d.ts
 backups/
 scripts/backup/
 *.MD
+seed-products.js

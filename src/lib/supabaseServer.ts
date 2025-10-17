@@ -15,9 +15,34 @@ export function getSupabaseAdminClient(): SupabaseClient {
 export function getSupabaseRouteClientWithAuth(request: Request): SupabaseClient {
   const url = requireEnv('NEXT_PUBLIC_SUPABASE_URL')
   const anon = requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
-  const authorization = request.headers.get('authorization') || ''
+  let authorization = request.headers.get('authorization') || ''
+
+  // Fallback: extract access token from Supabase auth cookie if Authorization header is missing.
+  if (!authorization) {
+    const cookieHeader = request.headers.get('cookie') || ''
+    // Find cookie like sb-<project-ref>-auth-token
+    const match = cookieHeader
+      .split(';')
+      .map((c) => c.trim())
+      .find((c) => {
+        const name = c.split('=')[0] || ''
+        return name.includes('sb-') && name.endsWith('-auth-token')
+      })
+    if (match) {
+      const value = match.split('=')[1] || ''
+      try {
+        const decoded = decodeURIComponent(value)
+        const parsed = JSON.parse(decoded)
+        const token = parsed?.currentSession?.access_token || parsed?.access_token
+        if (token) authorization = `Bearer ${token}`
+      } catch (_) {
+        // ignore parsing errors
+      }
+    }
+  }
+
   return createClient(url, anon, {
-    global: { headers: { Authorization: authorization } },
+    global: { headers: authorization ? { Authorization: authorization } : {} },
   })
 }
 

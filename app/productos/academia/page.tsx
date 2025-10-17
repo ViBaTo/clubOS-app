@@ -1,116 +1,59 @@
+"use client"
 import { Sidebar } from "@/src/components/layout/sidebar"
 import { Navbar } from "@/src/components/layout/navbar"
 import { AcademyCard } from "@/src/components/products/academy-card"
+import { useEffect, useState } from "react"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 
-// Mock data for academy programs
-const academyPrograms = [
-  {
-    id: 1,
-    name: "Escuela Iniciación",
-    instructor: "Carlos Martínez",
-    instructorAvatar: "/instructor-teaching.png",
-    schedule: "Lunes y Miércoles 18:00-19:30",
-    level: "Principiante",
-    duration: "3 meses",
-    price: 80,
-    availableSpots: 8,
-    totalSpots: 12,
-    image: "/padel-academy-training.jpg",
-  },
-  {
-    id: 2,
-    name: "Perfeccionamiento Técnico",
-    instructor: "Ana García",
-    instructorAvatar: "/female-instructor.png",
-    schedule: "Martes y Jueves 19:00-20:30",
-    level: "Intermedio",
-    duration: "4 meses",
-    price: 95,
-    availableSpots: 3,
-    totalSpots: 10,
-    image: "/padel-technique-training.jpg",
-  },
-  {
-    id: 3,
-    name: "Competición Avanzada",
-    instructor: "Miguel Rodríguez",
-    instructorAvatar: "/male-coach.png",
-    schedule: "Lunes, Miércoles y Viernes 20:00-21:30",
-    level: "Avanzado",
-    duration: "Curso anual",
-    price: 120,
-    availableSpots: 2,
-    totalSpots: 8,
-    image: "/competitive-padel-training.jpg",
-  },
-  {
-    id: 4,
-    name: "Escuela Juvenil",
-    instructor: "Laura Fernández",
-    instructorAvatar: "/young-female-instructor.jpg",
-    schedule: "Sábados 10:00-11:30",
-    level: "Principiante",
-    duration: "6 meses",
-    price: 60,
-    availableSpots: 15,
-    totalSpots: 20,
-    image: "/placeholder-cjhrd.png",
-  },
-  {
-    id: 5,
-    name: "Táctica y Estrategia",
-    instructor: "David López",
-    instructorAvatar: "/tactical-coach.jpg",
-    schedule: "Jueves 19:30-21:00",
-    level: "Intermedio",
-    duration: "2 meses",
-    price: 85,
-    availableSpots: 6,
-    totalSpots: 12,
-    image: "/padel-strategy-training.jpg",
-  },
-  {
-    id: 6,
-    name: "Preparación Física",
-    instructor: "Roberto Sánchez",
-    instructorAvatar: "/diverse-fitness-coach.png",
-    schedule: "Martes y Viernes 17:00-18:00",
-    level: "Intermedio",
-    duration: "3 meses",
-    price: 70,
-    availableSpots: 10,
-    totalSpots: 15,
-    image: "/padel-fitness-training.jpg",
-  },
-  {
-    id: 7,
-    name: "Escuela Femenina",
-    instructor: "Carmen Ruiz",
-    instructorAvatar: "/female-padel-coach.jpg",
-    schedule: "Miércoles y Viernes 11:00-12:30",
-    level: "Principiante",
-    duration: "4 meses",
-    price: 75,
-    availableSpots: 12,
-    totalSpots: 16,
-    image: "/women-padel-training.jpg",
-  },
-  {
-    id: 8,
-    name: "Clínic de Fin de Semana",
-    instructor: "Javier Moreno",
-    instructorAvatar: "/weekend-coach.jpg",
-    schedule: "Sábados y Domingos 16:00-18:00",
-    level: "Avanzado",
-    duration: "1 mes",
-    price: 150,
-    availableSpots: 4,
-    totalSpots: 8,
-    image: "/intensive-padel-clinic.jpg",
-  },
-]
+interface AcademyProgram {
+  id: string
+  name: string
+  instructor?: string
+  instructorAvatar?: string
+  schedule?: string
+  level?: string
+  duration?: string
+  price: number
+  availableSpots?: number
+  totalSpots?: number
+  image?: string
+}
 
 export default function AcademiaPage() {
+  const [programs, setPrograms] = useState<AcademyProgram[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const supabase = getSupabaseClient()
+        const session = (await supabase.auth.getSession()).data.session
+        const token = session?.access_token
+        const res = await fetch('/api/products?type=academy', {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error || 'Error loading products')
+        const list: AcademyProgram[] = (json.products as any[]).map((p) => ({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price) || 0,
+          duration: p.duration_days ? `${p.duration_days} días` : 'Mensual',
+          level: p.configuration?.level ?? 'Intermedio',
+          instructor: p.configuration?.instructor ?? 'Instructor',
+          instructorAvatar: p.configuration?.instructorAvatar ?? '/placeholder.svg',
+          schedule: p.configuration?.schedule ?? '',
+          availableSpots: p.configuration?.availableSpots ?? 0,
+          totalSpots: p.configuration?.totalSpots ?? 0,
+          image: p.configuration?.image ?? '/placeholder.svg',
+        }))
+        setPrograms(list)
+      } catch (e: any) {
+        setError(e.message)
+      }
+    }
+    load()
+  }, [])
   return (
     <div className="flex h-screen bg-[#F1F5F9]">
       <Sidebar />
@@ -159,9 +102,10 @@ export default function AcademiaPage() {
             </div>
 
             {/* Academy programs grid */}
+            {error && <div className="text-sm text-red-600">{error}</div>}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {academyPrograms.map((program) => (
-                <AcademyCard key={program.id} program={program} />
+              {programs.map((program) => (
+                <AcademyCard key={program.id} program={program as any} />
               ))}
             </div>
           </div>
