@@ -162,7 +162,7 @@ export function MembersDirectory() {
   const filteredMembers = source.filter((member) => {
     const matchesSearch =
       member.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || member.telefono.includes(searchTerm)
-    const matchesStatus = statusFilter === "all" || member.estado === statusFilter
+    const matchesStatus = statusFilter === "all" || (statusFilter === 'active' ? member.estado === 'Activo' : member.estado === 'Inactivo')
     const matchesCategory = categoryFilter === "all" || member.categoria === categoryFilter
 
     return matchesSearch && matchesStatus && matchesCategory
@@ -215,8 +215,8 @@ export function MembersDirectory() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="Activo">Activo</SelectItem>
-                  <SelectItem value="Inactivo">Inactivo</SelectItem>
+                  <SelectItem value="active">Activo</SelectItem>
+                  <SelectItem value="inactive">Inactivo</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>

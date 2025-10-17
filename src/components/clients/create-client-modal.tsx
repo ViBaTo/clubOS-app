@@ -99,20 +99,46 @@ export function CreateClientModal({ open, onOpenChange, onSuccess }: CreateClien
     if (!validateForm()) return
 
     setIsLoading(true)
+    try {
+      // attach bearer token
+      const { getSupabaseClient } = await import("@/src/lib/supabaseClient")
+      const supabase = getSupabaseClient()
+      const session = (await supabase.auth.getSession()).data.session
+      const token = session?.access_token
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+      const payload = {
+        full_name: formData.nombre,
+        email: formData.email,
+        phone: formData.telefono,
+        document_id: formData.documento,
+        categoria_id: null as string | null, // map UI category if/when you connect categories
+        status: 'active'
+      }
 
-    setIsLoading(false)
-    setShowSuccess(true)
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload)
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error || 'No se pudo crear el cliente')
 
-    // Reset form after success animation
-    setTimeout(() => {
-      setShowSuccess(false)
-      onOpenChange(false)
-      resetForm()
-      onSuccess?.()
-    }, 2000)
+      setShowSuccess(true)
+      setTimeout(() => {
+        setShowSuccess(false)
+        onOpenChange(false)
+        resetForm()
+        onSuccess?.()
+      }, 1200)
+    } catch (err: any) {
+      // Basic inline error display using existing errors map
+      setErrors((prev) => ({ ...prev, api: err.message }))
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const resetForm = () => {
