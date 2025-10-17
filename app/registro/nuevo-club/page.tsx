@@ -105,6 +105,52 @@ export default function NuevoClubPage() {
         return
       }
       if (data?.user) {
+        // Ensure we have a session token; if confirmation is disabled this will be present.
+        let session = data.session
+        if (!session) {
+          const { data: signInData } = await supabase.auth.signInWithPassword({
+            email: formData.adminEmail,
+            password: formData.password,
+          })
+          session = signInData.session ?? null
+        }
+
+        // Map UI labels to enum values expected by the DB
+        const mapClubTypeToEnum = (label: string, other: string) => {
+          const l = (label || '').toLowerCase()
+          if (l.includes('pádel') || l.includes('tenis')) return 'tenis_padel'
+          if (l.includes('golf')) return 'golf'
+          if (l.includes('fitness') || l.includes('gimnasio')) return 'gimnasio_fitness'
+          if (l.includes('natación') || l.includes('acu')) return 'acuatico'
+          if (l.includes('multidisciplinar')) return 'multideportivo'
+          if (l.includes('artes')) return 'artes_marciales'
+          // Fallback for "Otro" or anything else
+          return 'multideportivo'
+        }
+        const enumClubType = mapClubTypeToEnum(formData.clubType, formData.clubTypeOther)
+
+        const orgError = await fetch('/api/organizations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify({
+            clubType: enumClubType,
+            clubName: formData.clubName,
+            address: formData.address,
+            phone: formData.phone,
+            clubEmail: formData.clubEmail,
+            cif: formData.cif,
+            slug: formData.clubName,
+            // Dev fallback: allow server to locate user by email
+            ...(process.env.NODE_ENV === 'development' && !session ? { userEmail: formData.adminEmail } : {}),
+          }),
+        }).then(async (r) => (r.ok ? null : new Error((await r.json()).error)))
+        if (orgError) {
+          toast({ title: 'No se pudo crear el club', description: (orgError as Error).message })
+          return
+        }
         router.push("/registro/exito?type=nuevo-club")
       }
     } finally {

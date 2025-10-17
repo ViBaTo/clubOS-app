@@ -80,6 +80,43 @@ export default function UnirsePage() {
         return
       }
       if (data?.user) {
+        // Ensure session
+        let session = data.session
+        if (!session) {
+          const { data: signInData } = await supabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+          })
+          session = signInData.session ?? null
+        }
+
+        if (!session) {
+          toast({
+            title: 'Verifica tu correo',
+            description: 'Confirma tu email para completar la unión al club.',
+          })
+          router.push('/registro/exito?type=unirse')
+          return
+        }
+
+        const resp = await fetch('/api/organizations/join', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify({
+            clubCode: formData.clubCode,
+            role: 'member',
+            message: formData.message,
+            ...(process.env.NODE_ENV === 'development' && !session ? { userEmail: formData.email } : {}),
+          }),
+        })
+        if (!resp.ok) {
+          const j = await resp.json().catch(() => ({}))
+          toast({ title: 'No se pudo unir al club', description: j.error || 'Error' })
+          return
+        }
         router.push('/registro/exito?type=unirse')
       }
     } finally {
