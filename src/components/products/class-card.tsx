@@ -19,9 +19,11 @@ interface ClassItem {
 
 interface ClassCardProps {
   classItem: ClassItem
+  onView?: (item: ClassItem) => void
+  onReserve?: (item: ClassItem) => void
 }
 
-export function ClassCard({ classItem }: ClassCardProps) {
+export function ClassCard({ classItem, onView, onReserve }: ClassCardProps) {
   const getLevelColor = (level: string) => {
     switch (level) {
       case "Principiante":
@@ -133,13 +135,25 @@ export function ClassCard({ classItem }: ClassCardProps) {
       {/* Separator */}
       <div className="h-px bg-[#94A3B8]/20 mb-4"></div>
 
-      {/* Action button */}
-      <Button
-        className="w-full bg-[#1E40AF] hover:bg-[#1D4ED8] text-white transition-all duration-150"
-        disabled={isDisabled}
-      >
-        {classItem.status === "Cancelada" ? "Cancelada" : classItem.status === "Completa" ? "Completa" : "Reservar"}
-      </Button>
+      {/* Action buttons */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1"
+          onClick={() => onView?.(classItem)}
+        >
+          Ver detalles
+        </Button>
+        <Button
+          size="sm"
+          className="flex-1 bg-[#1E40AF] hover:bg-[#1D4ED8] text-white transition-all duration-150"
+          disabled={isDisabled}
+          onClick={() => onReserve?.(classItem)}
+        >
+          {classItem.status === "Cancelada" ? "Cancelada" : classItem.status === "Completa" ? "Completa" : "Reservar"}
+        </Button>
+      </div>
     </div>
   )
 }
