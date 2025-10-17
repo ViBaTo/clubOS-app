@@ -30,6 +30,7 @@ export function AssignClientModal({ open, onOpenChange, productId, productName, 
   const [loading, setLoading] = useState(false)
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
   const [assigning, setAssigning] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (open) {
@@ -56,6 +57,7 @@ export function AssignClientModal({ open, onOpenChange, productId, productName, 
 
   const loadClients = async () => {
     setLoading(true)
+    setError(null)
     try {
       const supabase = getSupabaseClient()
       const session = (await supabase.auth.getSession()).data.session
@@ -70,13 +72,25 @@ export function AssignClientModal({ open, onOpenChange, productId, productName, 
       
       if (!res.ok) throw new Error(json.error || 'Error loading clients')
       
-      // Filter out clients who already have an active enrollment for this product
-      // For now, show all clients - we can add enrollment checking later
-      const activeClients = (json.clients || []).filter((c: Client) => c.status === 'active' || c.status === 'activo')
-      setClients(activeClients)
-      setFilteredClients(activeClients)
+      // Get clients already enrolled in this product
+      const { data: enrolledClients } = await supabase
+        .from('product_sales')
+        .select('client_id')
+        .eq('product_id', productId)
+        .eq('status', 'active')
+
+      const enrolledClientIds = new Set(enrolledClients?.map(e => e.client_id) || [])
+      
+      // Filter: active clients who are NOT already enrolled
+      const availableClients = (json.clients || []).filter((c: Client) => 
+        (c.status === 'active' || c.status === 'activo') && !enrolledClientIds.has(c.id)
+      )
+      
+      setClients(availableClients)
+      setFilteredClients(availableClients)
     } catch (e: any) {
       console.error('Error loading clients:', e)
+      setError(e.message || 'Error al cargar clientes')
     } finally {
       setLoading(false)
     }
@@ -148,7 +162,12 @@ export function AssignClientModal({ open, onOpenChange, productId, productName, 
 
           {/* Client list */}
           <div className="flex-1 overflow-y-auto border rounded-lg">
-            {loading ? (
+            {error ? (
+              <div className="p-8 text-center">
+                <p className="text-red-600 mb-2">{error}</p>
+                <Button variant="outline" size="sm" onClick={loadClients}>Reintentar</Button>
+              </div>
+            ) : loading ? (
               <div className="p-8 text-center text-[#64748B]">Cargando clientes...</div>
             ) : filteredClients.length === 0 ? (
               <div className="p-8 text-center text-[#64748B]">
