@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import { CreateClientModal } from "@/src/components/clients/create-client-modal"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 
 const MaterialIcon = ({ name, className = "" }: { name: string; className?: string }) => (
   <span className={cn("material-symbols-outlined", className)}>{name}</span>
@@ -122,8 +123,43 @@ export function MembersDirectory() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [showCreateClient, setShowCreateClient] = useState(false)
   const router = useRouter()
+  const [members, setMembers] = useState<Member[] | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const filteredMembers = mockMembers.filter((member) => {
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const supabase = getSupabaseClient()
+        const session = (await supabase.auth.getSession()).data.session
+        const token = session?.access_token
+        const params = new URLSearchParams()
+        if (statusFilter !== 'all') params.set('status', statusFilter)
+        if (searchTerm) params.set('q', searchTerm)
+        const res = await fetch(`/api/clients?${params.toString()}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error || 'Error loading clients')
+        const list = (json.clients as any[]).map((c) => ({
+          id: c.id,
+          nombre: c.full_name || 'Sin nombre',
+          telefono: c.phone || '',
+          categoria: 'Intermedio' as const,
+          estado: (c.status === 'active' ? 'Activo' : 'Inactivo') as Member['estado'],
+        }))
+        setMembers(list)
+      } catch (e: any) {
+        setError(e.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchClients()
+  }, [searchTerm, statusFilter])
+
+  const source = members ?? mockMembers
+  const filteredMembers = source.filter((member) => {
     const matchesSearch =
       member.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || member.telefono.includes(searchTerm)
     const matchesStatus = statusFilter === "all" || member.estado === statusFilter
@@ -200,10 +236,14 @@ export function MembersDirectory() {
           </CardContent>
         </Card>
 
+        {error && (
+          <div className="text-sm text-red-600">{error}</div>
+        )}
+
         <Card>
           <CardHeader className="p-0">
             <CardTitle className="text-xl font-semibold text-[#0F172A] leading-snug">
-              Directorio de Clientes ({filteredMembers.length})
+              Directorio de Clientes ({loading ? '...' : filteredMembers.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">

@@ -35,10 +35,15 @@ export default function LoginPage() {
         password: formData.password,
       })
       if (error) {
-        toast({
-          title: "No se pudo iniciar sesión",
-          description: error.message,
-        })
+        const code = (error as any).status || 400
+        const raw = error.message || 'Error de autenticación'
+        let msg = raw
+        if (raw.toLowerCase().includes('invalid login credentials')) {
+          msg = 'Credenciales inválidas. Verifica tu email y contraseña.'
+        } else if (raw.toLowerCase().includes('email') && raw.toLowerCase().includes('confirm')) {
+          msg = 'Email no confirmado. Revisa tu bandeja de entrada.'
+        }
+        toast({ title: `No se pudo iniciar sesión (${code})`, description: msg })
         return
       }
       if (data?.user) {
