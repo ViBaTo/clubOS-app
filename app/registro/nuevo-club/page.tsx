@@ -12,6 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react"
+import { getSupabaseClient, isSupabaseConfigured } from "@/src/lib/supabaseClient"
+import { useToast } from "@/hooks/use-toast"
 
 const CLUB_TYPES = [
   "Club de Pádel",
@@ -44,6 +46,7 @@ const SUBSCRIPTION_PLANS = [
 
 export default function NuevoClubPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [currentStep, setCurrentStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -84,12 +87,75 @@ export default function NuevoClubPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    try {
+      if (formData.password !== formData.confirmPassword) {
+        toast({ title: 'Las contraseñas no coinciden' })
+        return
+      }
+      const supabase = getSupabaseClient()
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.adminEmail,
+        password: formData.password,
+        options: {
+          data: { full_name: formData.adminName, phone: formData.adminPhone },
+        },
+      })
+      if (error) {
+        toast({ title: 'No se pudo crear la cuenta', description: error.message })
+        return
+      }
+      if (data?.user) {
+        // Ensure we have a session token; if confirmation is disabled this will be present.
+        let session = data.session
+        if (!session) {
+          const { data: signInData } = await supabase.auth.signInWithPassword({
+            email: formData.adminEmail,
+            password: formData.password,
+          })
+          session = signInData.session ?? null
+        }
 
-    // Simulate registration process
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+        // Map UI labels to enum values expected by the DB
+        const mapClubTypeToEnum = (label: string, other: string) => {
+          const l = (label || '').toLowerCase()
+          if (l.includes('pádel') || l.includes('tenis')) return 'tenis_padel'
+          if (l.includes('golf')) return 'golf'
+          if (l.includes('fitness') || l.includes('gimnasio')) return 'gimnasio_fitness'
+          if (l.includes('natación') || l.includes('acu')) return 'acuatico'
+          if (l.includes('multidisciplinar')) return 'multideportivo'
+          if (l.includes('artes')) return 'artes_marciales'
+          // Fallback for "Otro" or anything else
+          return 'multideportivo'
+        }
+        const enumClubType = mapClubTypeToEnum(formData.clubType, formData.clubTypeOther)
 
-    setIsLoading(false)
-    router.push("/registro/exito?type=nuevo-club")
+        const orgError = await fetch('/api/organizations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify({
+            clubType: enumClubType,
+            clubName: formData.clubName,
+            address: formData.address,
+            phone: formData.phone,
+            clubEmail: formData.clubEmail,
+            cif: formData.cif,
+            slug: formData.clubName,
+            // Dev fallback: allow server to locate user by email
+            ...(process.env.NODE_ENV === 'development' && !session ? { userEmail: formData.adminEmail } : {}),
+          }),
+        }).then(async (r) => (r.ok ? null : new Error((await r.json()).error)))
+        if (orgError) {
+          toast({ title: 'No se pudo crear el club', description: (orgError as Error).message })
+          return
+        }
+        router.push("/registro/exito?type=nuevo-club")
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const getPasswordStrength = (password: string) => {
@@ -163,7 +229,12 @@ export default function NuevoClubPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit}>
+            {!isSupabaseConfigured() ? (
+              <div className="text-sm text-red-600">
+                Falta configuración de entorno. Define `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit}>
               {/* Step 1: Club Information */}
               {currentStep === 1 && (
                 <div className="space-y-4">
@@ -457,7 +528,8 @@ export default function NuevoClubPage() {
                   </Button>
                 )}
               </div>
-            </form>
+              </form>
+            )}
           </CardContent>
         </Card>
       </div>

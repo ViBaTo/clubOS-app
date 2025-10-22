@@ -18,9 +18,10 @@ interface AcademyProgram {
 
 interface AcademyCardProps {
   program: AcademyProgram
+  onView?: (program: AcademyProgram) => void
 }
 
-export function AcademyCard({ program }: AcademyCardProps) {
+export function AcademyCard({ program, onView }: AcademyCardProps) {
   const getLevelColor = (level: string) => {
     switch (level) {
       case "Principiante":
@@ -103,6 +104,7 @@ export function AcademyCard({ program }: AcademyCardProps) {
             variant="outline"
             size="sm"
             className="flex-1 border-[#94A3B8]/30 text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-all duration-150 bg-transparent"
+            onClick={() => onView?.(program)}
           >
             Ver detalles
           </Button>

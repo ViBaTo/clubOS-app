@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,9 +8,10 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ClientAvatar } from "@/components/ui/client-avatar"
 import { cn } from "@/lib/utils"
 import { CreateClientModal } from "@/src/components/clients/create-client-modal"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 
 const MaterialIcon = ({ name, className = "" }: { name: string; className?: string }) => (
   <span className={cn("material-symbols-outlined", className)}>{name}</span>
@@ -107,13 +108,8 @@ const getStatusBadgeColor = (estado: Member["estado"]) => {
     : "bg-gray-100 text-gray-800 hover:bg-gray-200"
 }
 
-const getInitials = (nombre: string) => {
-  return nombre
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .substring(0, 2)
-    .toUpperCase()
+const getFirstName = (nombre: string) => {
+  return nombre.split(" ")[0] || nombre
 }
 
 export function MembersDirectory() {
@@ -122,11 +118,46 @@ export function MembersDirectory() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [showCreateClient, setShowCreateClient] = useState(false)
   const router = useRouter()
+  const [members, setMembers] = useState<Member[] | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const filteredMembers = mockMembers.filter((member) => {
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const supabase = getSupabaseClient()
+        const session = (await supabase.auth.getSession()).data.session
+        const token = session?.access_token
+        const params = new URLSearchParams()
+        if (statusFilter !== 'all') params.set('status', statusFilter)
+        if (searchTerm) params.set('q', searchTerm)
+        const res = await fetch(`/api/clients?${params.toString()}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error || 'Error loading clients')
+        const list = (json.clients as any[]).map((c) => ({
+          id: c.id,
+          nombre: c.full_name || 'Sin nombre',
+          telefono: c.phone || '',
+          categoria: 'Intermedio' as const,
+          estado: (c.status === 'active' ? 'Activo' : 'Inactivo') as Member['estado'],
+        }))
+        setMembers(list)
+      } catch (e: any) {
+        setError(e.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchClients()
+  }, [searchTerm, statusFilter])
+
+  const source = members ?? mockMembers
+  const filteredMembers = source.filter((member) => {
     const matchesSearch =
       member.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || member.telefono.includes(searchTerm)
-    const matchesStatus = statusFilter === "all" || member.estado === statusFilter
+    const matchesStatus = statusFilter === "all" || (statusFilter === 'active' ? member.estado === 'Activo' : member.estado === 'Inactivo')
     const matchesCategory = categoryFilter === "all" || member.categoria === categoryFilter
 
     return matchesSearch && matchesStatus && matchesCategory
@@ -179,8 +210,8 @@ export function MembersDirectory() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="Activo">Activo</SelectItem>
-                  <SelectItem value="Inactivo">Inactivo</SelectItem>
+                  <SelectItem value="active">Activo</SelectItem>
+                  <SelectItem value="inactive">Inactivo</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -200,10 +231,14 @@ export function MembersDirectory() {
           </CardContent>
         </Card>
 
+        {error && (
+          <div className="text-sm text-red-600">{error}</div>
+        )}
+
         <Card>
           <CardHeader className="p-0">
             <CardTitle className="text-xl font-semibold text-[#0F172A] leading-snug">
-              Directorio de Clientes ({filteredMembers.length})
+              Directorio de Clientes ({loading ? '...' : filteredMembers.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
@@ -231,12 +266,11 @@ export function MembersDirectory() {
                     <TableRow key={member.id} className="hover:bg-muted/50 border-b border-[#94A3B8]/20">
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.nombre} />
-                            <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                              {getInitials(member.nombre)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <ClientAvatar 
+                            firstName={getFirstName(member.nombre)}
+                            imageUrl={member.avatar}
+                            size="md"
+                          />
                           <div>
                             <div className="text-base font-normal text-[#64748B] leading-relaxed font-medium">
                               {member.nombre}
@@ -303,12 +337,11 @@ export function MembersDirectory() {
               <CardContent className="p-0">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.nombre} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                        {getInitials(member.nombre)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <ClientAvatar 
+                      firstName={getFirstName(member.nombre)}
+                      imageUrl={member.avatar}
+                      size="lg"
+                    />
                     <div>
                       <div className="text-base font-normal text-[#64748B] leading-relaxed font-medium">
                         {member.nombre}

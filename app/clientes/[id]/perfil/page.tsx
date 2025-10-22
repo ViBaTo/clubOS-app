@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Sidebar } from "@/src/components/layout/sidebar"
 import { Navbar } from "@/src/components/layout/navbar"
@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { toast } from "@/hooks/use-toast"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 import { cn } from "@/lib/utils"
 
 const MaterialIcon = ({ name, className = "" }: { name: string; className?: string }) => (
@@ -240,6 +241,38 @@ export default function ClientProfilePage() {
     notas: "",
   })
 
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const id = String(params?.id || '')
+        if (!id) return
+        const supabase = getSupabaseClient()
+        const session = (await supabase.auth.getSession()).data.session
+        const token = session?.access_token
+        const res = await fetch(`/api/clients/${id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error || 'No se pudo cargar el cliente')
+        const c = json.client
+        setClient((prev) => ({
+          ...prev,
+          id: c.id,
+          nombre: c.full_name || 'Sin nombre',
+          email: c.email || '',
+          telefono: c.phone || '',
+          dni: c.document_id || '',
+          categoria: 'Intermedio',
+          estado: c.status === 'active' ? 'Activo' : 'Inactivo',
+          fechaRegistro: c.created_at || prev.fechaRegistro,
+        }))
+      } catch (e: any) {
+        toast({ title: 'Error', description: e.message, variant: 'destructive' as any })
+      }
+    }
+    load()
+  }, [params?.id])
+
   const handleInputChange = (field: keyof ClientProfile, value: string | boolean) => {
     setClient((prev) => ({ ...prev, [field]: value }))
     setHasChanges(true)
@@ -247,30 +280,59 @@ export default function ClientProfilePage() {
 
   const handleSave = async () => {
     setIsSaving(true)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsSaving(false)
-    setHasChanges(false)
-    setIsEditing(false)
-    toast({
-      title: "Cambios guardados",
-      description: "El perfil del cliente ha sido actualizado correctamente.",
-    })
+    try {
+      const supabase = getSupabaseClient()
+      const session = (await supabase.auth.getSession()).data.session
+      const token = session?.access_token
+      const payload: any = {
+        full_name: client.nombre,
+        email: client.email,
+        phone: client.telefono,
+        document_id: client.dni,
+        // Map estado back to API value
+        status: client.estado === 'Activo' ? 'active' : 'inactive'
+      }
+      const res = await fetch(`/api/clients/${params?.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload)
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error || 'No se pudo guardar')
+      setHasChanges(false)
+      setIsEditing(false)
+      toast({ title: 'Cambios guardados', description: 'Perfil actualizado.' })
+    } catch (e: any) {
+      toast({ title: 'Error al guardar', description: e.message, variant: 'destructive' as any })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleCancel = () => {
     setIsEditing(false)
     setHasChanges(false)
-    setClient(mockClient)
   }
 
   const handleDelete = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    toast({
-      title: "Cliente eliminado",
-      description: "El cliente ha sido eliminado del sistema.",
-      variant: "destructive",
-    })
-    router.push("/clientes")
+    try {
+      const supabase = getSupabaseClient()
+      const session = (await supabase.auth.getSession()).data.session
+      const token = session?.access_token
+      const res = await fetch(`/api/clients/${params?.id}`, {
+        method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error || 'No se pudo eliminar')
+      toast({ title: 'Cliente eliminado' })
+      router.push('/clientes')
+    } catch (e: any) {
+      toast({ title: 'Error al eliminar', description: e.message, variant: 'destructive' as any })
+    }
   }
 
   const handleOpenAttendanceModal = (packageId: string) => {
