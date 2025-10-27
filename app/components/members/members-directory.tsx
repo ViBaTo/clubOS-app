@@ -25,6 +25,7 @@ import { ClientAvatar } from '@/components/ui/client-avatar'
 import { cn } from '@/lib/utils'
 import { CreateClientModal } from '@/app/components/clients/create-client-modal'
 import { getSupabaseClient } from '@/app/lib/supabaseClient'
+import { getCategoryBadgeColorByName } from '@/lib/category-colors'
 
 const MaterialIcon = ({
   name,
@@ -44,26 +45,13 @@ interface Member {
     | 'Avanzado'
     | 'Competición'
     | 'Veterano'
+  category_name?: string | null
   estado: 'Activo' | 'Inactivo'
   avatar?: string
 }
 
-const getCategoryBadgeColor = (categoria: Member['categoria']) => {
-  switch (categoria) {
-    case 'Principiante':
-      return 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-    case 'Intermedio':
-      return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-    case 'Avanzado':
-      return 'bg-orange-100 text-orange-800 hover:bg-orange-200'
-    case 'Competición':
-      return 'bg-red-100 text-red-800 hover:bg-red-200'
-    case 'Veterano':
-      return 'bg-purple-100 text-purple-800 hover:bg-purple-200'
-    default:
-      return 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-  }
-}
+const getCategoryBadgeColor = (categoria: Member['categoria']) =>
+  getCategoryBadgeColorByName(categoria)
 
 const getStatusBadgeColor = (estado: Member['estado']) => {
   return estado === 'Activo'
@@ -103,8 +91,11 @@ export function MembersDirectory() {
           id: c.id,
           nombre: c.full_name || 'Sin nombre',
           telefono: c.phone || '',
-          categoria: 'Intermedio' as const,
-          estado: (c.status === 'active'
+          categoria: (c.category_name || 'Intermedio') as Member['categoria'],
+          category_name: c.category_name ?? null,
+          estado: (String(c.status || '')
+            .toLowerCase()
+            .trim() === 'active'
             ? 'Activo'
             : 'Inactivo') as Member['estado']
         }))
@@ -263,9 +254,12 @@ export function MembersDirectory() {
                       <TableCell>
                         <Badge
                           variant='secondary'
-                          className={getCategoryBadgeColor(member.categoria)}
+                          className={getCategoryBadgeColor(
+                            (member.category_name ||
+                              member.categoria) as Member['categoria']
+                          )}
                         >
-                          {member.categoria}
+                          {member.category_name || member.categoria}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -330,9 +324,12 @@ export function MembersDirectory() {
                       <div className='flex gap-2 mt-2'>
                         <Badge
                           variant='secondary'
-                          className={getCategoryBadgeColor(member.categoria)}
+                          className={getCategoryBadgeColor(
+                            (member.category_name ||
+                              member.categoria) as Member['categoria']
+                          )}
                         >
-                          {member.categoria}
+                          {member.category_name || member.categoria}
                         </Badge>
                         <Badge
                           variant='secondary'

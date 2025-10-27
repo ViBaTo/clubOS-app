@@ -23,6 +23,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Loader2, Upload, CheckCircle2 } from 'lucide-react'
+import { PHONE_COUNTRIES, iso2ToFlagEmoji } from '@/app/lib/phone-countries'
 
 const MaterialIcon = ({
   name,
@@ -73,13 +74,16 @@ export function CreateClientModal({
   const [formData, setFormData] = useState({
     nombre: '',
     documento: '',
-    telefono: '+34 ',
+    telefono: '',
     email: '',
     categoria: '',
     packageId: '',
     paymentMethod: '',
     isPaid: false
   })
+
+  // Country prefix state for phone
+  const [phoneCountryIso2, setPhoneCountryIso2] = useState<string>('ES')
 
   // Form errors
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -88,8 +92,6 @@ export function CreateClientModal({
     const newErrors: Record<string, string> = {}
 
     if (!formData.nombre.trim()) newErrors.nombre = 'El nombre es requerido'
-    if (!formData.documento.trim())
-      newErrors.documento = 'El documento es requerido'
     if (!formData.telefono || formData.telefono === '+34 ')
       newErrors.telefono = 'El teléfono es requerido'
     if (!formData.email.trim()) {
@@ -150,11 +152,18 @@ export function CreateClientModal({
       const session = (await supabase.auth.getSession()).data.session
       const token = session?.access_token
 
+      const selectedCountry = PHONE_COUNTRIES.find(
+        (c) => c.iso2 === phoneCountryIso2
+      )
       const payload = {
         full_name: formData.nombre,
         email: formData.email,
-        phone: formData.telefono,
-        document_id: formData.documento,
+        phone: `${
+          selectedCountry?.dialCode ?? ''
+        } ${formData.telefono.trim()}`.trim(),
+        document_id: formData.documento.trim()
+          ? formData.documento
+          : (null as string | null),
         categoria_id: null as string | null, // map UI category if/when you connect categories
         status: 'active'
       }
@@ -189,13 +198,14 @@ export function CreateClientModal({
     setFormData({
       nombre: '',
       documento: '',
-      telefono: '+34 ',
+      telefono: '',
       email: '',
       categoria: '',
       packageId: '',
       paymentMethod: '',
       isPaid: false
     })
+    setPhoneCountryIso2('ES')
     setErrors({})
     setReceiptFile(null)
   }
@@ -271,9 +281,7 @@ export function CreateClientModal({
                   </div>
 
                   <div className='space-y-2'>
-                    <Label htmlFor='documento'>
-                      Documento ID <span className='text-red-600'>*</span>
-                    </Label>
+                    <Label htmlFor='documento'>Documento ID</Label>
                     <Input
                       id='documento'
                       value={formData.documento}
@@ -292,15 +300,56 @@ export function CreateClientModal({
                     <Label htmlFor='telefono'>
                       Teléfono <span className='text-red-600'>*</span>
                     </Label>
-                    <Input
-                      id='telefono'
-                      value={formData.telefono}
-                      onChange={(e) =>
-                        setFormData({ ...formData, telefono: e.target.value })
-                      }
-                      placeholder='+34 612 345 678'
-                      className={errors.telefono ? 'border-red-500' : ''}
-                    />
+                    <div className='flex items-center gap-2'>
+                      <Select
+                        value={phoneCountryIso2}
+                        onValueChange={(value) => setPhoneCountryIso2(value)}
+                      >
+                        <SelectTrigger
+                          size='sm'
+                          className='w-[104px] px-2'
+                          aria-label='Seleccionar prefijo'
+                          title='Seleccionar prefijo'
+                        >
+                          <div className='flex items-center gap-2'>
+                            <span className='text-base'>
+                              {iso2ToFlagEmoji(phoneCountryIso2)}
+                            </span>
+                            <span className='font-medium'>
+                              {
+                                PHONE_COUNTRIES.find(
+                                  (c) => c.iso2 === phoneCountryIso2
+                                )?.dialCode
+                              }
+                            </span>
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent className='max-h-80'>
+                          {PHONE_COUNTRIES.map((c) => (
+                            <SelectItem key={c.iso2} value={c.iso2}>
+                              <div className='flex items-center gap-2'>
+                                <span className='text-base'>
+                                  {iso2ToFlagEmoji(c.iso2)}
+                                </span>
+                                <span className='font-medium'>
+                                  {c.dialCode}
+                                </span>
+                                <span className='text-[#64748B]'>{c.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        id='telefono'
+                        value={formData.telefono}
+                        onChange={(e) =>
+                          setFormData({ ...formData, telefono: e.target.value })
+                        }
+                        placeholder='612 345 678'
+                        className={errors.telefono ? 'border-red-500' : ''}
+                      />
+                    </div>
                     {errors.telefono && (
                       <p className='text-sm text-red-600'>{errors.telefono}</p>
                     )}

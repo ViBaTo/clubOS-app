@@ -21,7 +21,18 @@ export async function GET(
       .single()
     if (error)
       return NextResponse.json({ error: error.message }, { status: 404 })
-    return NextResponse.json({ client: data })
+
+    let category_name: string | null = null
+    if (data?.categoria_id) {
+      const { data: cat, error: catError } = await supabase
+        .from('categories')
+        .select('name')
+        .eq('id', data.categoria_id)
+        .maybeSingle()
+      if (!catError) category_name = cat?.name ?? null
+    }
+
+    return NextResponse.json({ client: { ...data, category_name } })
   } catch (e: any) {
     return NextResponse.json(
       { error: e.message || 'Unexpected error' },

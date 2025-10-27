@@ -51,6 +51,7 @@ import {
 import { toast } from '@/hooks/use-toast'
 import { getSupabaseClient } from '@/app/lib/supabaseClient'
 import { cn } from '@/lib/utils'
+import { getCategoryBadgeColorByName } from '@/lib/category-colors'
 
 const MaterialIcon = ({
   name,
@@ -113,12 +114,8 @@ interface ClientProfile {
   dni: string
   direccion: string
   contactoEmergencia: string
-  categoria:
-    | 'Principiante'
-    | 'Intermedio'
-    | 'Avanzado'
-    | 'Competición'
-    | 'Veterano'
+  categoria: string
+  categoriaId: string | null
   estado: 'Activo' | 'Inactivo'
   avatar?: string
   fechaRegistro: string
@@ -136,6 +133,10 @@ export default function ClientProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
+    []
+  )
+  const [categoriesLoading, setCategoriesLoading] = useState(false)
   const [attendanceModal, setAttendanceModal] = useState({
     isOpen: false,
     packageId: '',
@@ -180,8 +181,14 @@ export default function ClientProfilePage() {
           email: c.email || '',
           telefono: c.phone || '',
           dni: c.document_id || '',
-          categoria: 'Intermedio',
-          estado: c.status === 'active' ? 'Activo' : 'Inactivo',
+          categoria: c.category_name || '',
+          categoriaId: c.categoria_id || null,
+          estado:
+            String(c.status || '')
+              .toLowerCase()
+              .trim() === 'active'
+              ? 'Activo'
+              : 'Inactivo',
           fechaRegistro: c.created_at || new Date().toISOString(),
           direccion: prev?.direccion || '',
           contactoEmergencia: prev?.contactoEmergencia || '',
@@ -203,6 +210,29 @@ export default function ClientProfilePage() {
     }
     load()
   }, [params?.id])
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setCategoriesLoading(true)
+        const supabase = getSupabaseClient()
+        const session = (await supabase.auth.getSession()).data.session
+        const token = session?.access_token
+        const res = await fetch('/api/categories', {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined
+        })
+        const json = await res.json()
+        if (!res.ok)
+          throw new Error(json.error || 'No se pudieron cargar las categorías')
+        setCategories(json.categories || [])
+      } catch (e) {
+        setCategories([])
+      } finally {
+        setCategoriesLoading(false)
+      }
+    }
+    loadCategories()
+  }, [])
 
   const handleInputChange = (
     field: keyof ClientProfile,
@@ -226,7 +256,8 @@ export default function ClientProfilePage() {
         phone: client.telefono,
         document_id: client.dni,
         // Map estado back to API value
-        status: client.estado === 'Activo' ? 'active' : 'inactive'
+        status: client.estado === 'Activo' ? 'active' : 'inactive',
+        categoria_id: client.categoriaId ?? null
       }
       const res = await fetch(`/api/clients/${params?.id}`, {
         method: 'PATCH',
@@ -240,6 +271,17 @@ export default function ClientProfilePage() {
       if (!res.ok) throw new Error(json.error || 'No se pudo guardar')
       setHasChanges(false)
       setIsEditing(false)
+      if (json.client) {
+        setClient((prev) =>
+          prev
+            ? {
+                ...prev,
+                categoria: json.client.category_name || prev.categoria,
+                categoriaId: json.client.categoria_id ?? prev.categoriaId
+              }
+            : prev
+        )
+      }
       toast({ title: 'Cambios guardados', description: 'Perfil actualizado.' })
     } catch (e: any) {
       toast({
@@ -322,6 +364,8 @@ export default function ClientProfilePage() {
       ? 'bg-green-100 text-green-800 hover:bg-green-200'
       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
   }
+
+  // colors imported from shared util
 
   const getPackageStatusColor = (estado: string) => {
     switch (estado) {
@@ -798,30 +842,50 @@ export default function ClientProfilePage() {
                     </Label>
                     {isEditing ? (
                       <Select
-                        value={client?.categoria || 'Intermedio'}
-                        onValueChange={(value) =>
-                          handleInputChange('categoria', value)
-                        }
+                        value={client?.categoriaId || ''}
+                        onValueChange={(value) => {
+                          const cat = categories.find((c) => c.id === value)
+                          if (!client) return
+                          setClient((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  categoriaId: value,
+                                  categoria: cat?.name || prev.categoria
+                                }
+                              : prev
+                          )
+                          setHasChanges(true)
+                        }}
                       >
                         <SelectTrigger className='border border-[#94A3B8]/30 focus:border-[#1E40AF] focus:ring-2 focus:ring-[#1E40AF]/20 rounded-lg px-4 py-3 text-[#0F172A] bg-white transition-all duration-150'>
-                          <SelectValue />
+                          <SelectValue
+                            placeholder={
+                              categoriesLoading
+                                ? 'Cargando...'
+                                : 'Seleccionar categoría'
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value='Principiante'>
-                            Principiante
-                          </SelectItem>
-                          <SelectItem value='Intermedio'>Intermedio</SelectItem>
-                          <SelectItem value='Avanzado'>Avanzado</SelectItem>
-                          <SelectItem value='Competición'>
-                            Competición
-                          </SelectItem>
-                          <SelectItem value='Veterano'>Veterano</SelectItem>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
+                    ) : client?.categoria ? (
+                      <Badge
+                        variant='secondary'
+                        className={getCategoryBadgeColorByName(
+                          client.categoria
+                        )}
+                      >
+                        {client.categoria}
+                      </Badge>
                     ) : (
-                      <p className='text-[#0F172A] font-medium'>
-                        {client?.categoria}
-                      </p>
+                      <span className='text-[#94A3B8]'>Sin categoría</span>
                     )}
                   </div>
                 </div>
