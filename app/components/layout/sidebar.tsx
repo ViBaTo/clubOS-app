@@ -8,11 +8,6 @@ import { Button } from '@/components/ui/button'
 
 const menuItems = [
   {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: 'analytics' // Changed from "dashboard" to valid Material Symbol "analytics"
-  },
-  {
     title: 'Clientes',
     href: '/clientes',
     icon: 'group'
