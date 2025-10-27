@@ -1,12 +1,12 @@
 "use client"
-import { Sidebar } from "@/src/components/layout/sidebar"
-import { Navbar } from "@/src/components/layout/navbar"
-import { AcademyCard } from "@/src/components/products/academy-card"
+import { Sidebar } from "@/app/components/layout/sidebar"
+import { Navbar } from "@/app/components/layout/navbar"
+import { AcademyCard } from "@/app/components/products/academy-card"
 import { useEffect, useState } from "react"
-import { getSupabaseClient } from "@/src/lib/supabaseClient"
+import { getSupabaseClient } from "@/app/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ProductEditorModal } from "@/src/components/products/product-editor-modal"
+import { ProductEditorModal } from "@/app/components/products/product-editor-modal"
 
 interface AcademyProgram {
   id: string

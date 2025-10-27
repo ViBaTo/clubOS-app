@@ -1,13 +1,13 @@
 "use client"
-import { Sidebar } from "@/src/components/layout/sidebar"
-import { Navbar } from "@/src/components/layout/navbar"
-import { ClassCard } from "@/src/components/products/class-card"
+import { Sidebar } from "@/app/components/layout/sidebar"
+import { Navbar } from "@/app/components/layout/navbar"
+import { ClassCard } from "@/app/components/products/class-card"
 import { useEffect, useState } from "react"
-import { getSupabaseClient } from "@/src/lib/supabaseClient"
+import { getSupabaseClient } from "@/app/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ProductEditorModal } from "@/src/components/products/product-editor-modal"
-import { AssignClientModal } from "@/src/components/products/assign-client-modal"
+import { ProductEditorModal } from "@/app/components/products/product-editor-modal"
+import { AssignClientModal } from "@/app/components/products/assign-client-modal"
 
 interface ClassItem {
   id: string

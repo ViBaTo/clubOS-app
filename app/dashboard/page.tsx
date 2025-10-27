@@ -1,8 +1,8 @@
-import { Sidebar } from "@/src/components/layout/sidebar"
-import { Navbar } from "@/src/components/layout/navbar"
-import { StatsCards } from "@/src/components/dashboard/stats-cards"
-import { RevenueAnalytics } from "@/src/components/dashboard/revenue-analytics"
-import { CompactQuickActions } from "@/src/components/dashboard/compact-quick-actions"
+import { Sidebar } from "@/app/components/layout/sidebar"
+import { Navbar } from "@/app/components/layout/navbar"
+import { StatsCards } from "@/app/components/dashboard/stats-cards"
+import { RevenueAnalytics } from "@/app/components/dashboard/revenue-analytics"
+import { CompactQuickActions } from "@/app/components/dashboard/compact-quick-actions"
 
 export default function Dashboard() {
   return (

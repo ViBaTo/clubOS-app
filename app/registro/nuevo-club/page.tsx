@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react"
-import { getSupabaseClient, isSupabaseConfigured } from "@/src/lib/supabaseClient"
+import { getSupabaseClient, isSupabaseConfigured } from "@/app/lib/supabaseClient"
 import { useToast } from "@/hooks/use-toast"
 
 const CLUB_TYPES = [

@@ -26,7 +26,7 @@ import { Alert, AlertDescription } from '../../../components/ui/alert'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Eye, EyeOff, Info } from 'lucide-react'
-import { getSupabaseClient, isSupabaseConfigured } from '@/src/lib/supabaseClient'
+import { getSupabaseClient, isSupabaseConfigured } from '@/app/lib/supabaseClient'
 import { useToast } from '@/hooks/use-toast'
 
 const ROLES = [

@@ -1,28 +1,48 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseRouteClientWithAuth } from '@/src/lib/supabaseServer'
+import { getSupabaseRouteClientWithAuth } from '@/app/lib/supabaseServer'
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
     const supabase = getSupabaseRouteClientWithAuth(_request)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+    if (!user)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { id } = params
-    const { data, error } = await supabase.from('clients').select('*').eq('id', id).single()
-    if (error) return NextResponse.json({ error: error.message }, { status: 404 })
+    const { id } = await context.params
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('id', id)
+      .single()
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 404 })
     return NextResponse.json({ client: data })
   } catch (e: any) {
-    return NextResponse.json({ error: e.message || 'Unexpected error' }, { status: 500 })
+    return NextResponse.json(
+      { error: e.message || 'Unexpected error' },
+      { status: 500 }
+    )
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
     const supabase = getSupabaseRouteClientWithAuth(request)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+    if (!user)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { id } = params
+    const { id } = await context.params
     const body = await request.json()
 
     const updatableFields = [
@@ -44,7 +64,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       if (key in body) payload[key] = body[key]
     }
     if (Object.keys(payload).length === 0) {
-      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No valid fields to update' },
+        { status: 400 }
+      )
     }
 
     const { data, error } = await supabase
@@ -54,26 +77,38 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       .select('*')
       .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 400 })
     return NextResponse.json({ client: data })
   } catch (e: any) {
-    return NextResponse.json({ error: e.message || 'Unexpected error' }, { status: 500 })
+    return NextResponse.json(
+      { error: e.message || 'Unexpected error' },
+      { status: 500 }
+    )
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
     const supabase = getSupabaseRouteClientWithAuth(request)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+    if (!user)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { id } = params
+    const { id } = await context.params
     const { error } = await supabase.from('clients').delete().eq('id', id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 400 })
     return NextResponse.json({ ok: true })
   } catch (e: any) {
-    return NextResponse.json({ error: e.message || 'Unexpected error' }, { status: 500 })
+    return NextResponse.json(
+      { error: e.message || 'Unexpected error' },
+      { status: 500 }
+    )
   }
 }
-
-

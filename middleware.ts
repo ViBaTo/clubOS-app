@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 const PUBLIC_PATHS = new Set([
   '/',
   '/login',
+  '/login/reset',
   '/registro',
   '/registro/unirse',
   '/registro/nuevo-club',
@@ -22,16 +23,19 @@ export function middleware(request: NextRequest) {
   }
 
   // Allow public paths
-  if (PUBLIC_PATHS.has(pathname) || pathname.startsWith('/_next') || pathname.startsWith('/api/auth')) {
+  if (
+    PUBLIC_PATHS.has(pathname) ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api/auth')
+  ) {
     return NextResponse.next()
   }
 
   // Only guard selected private prefixes
-  const isPrivate = (
+  const isPrivate =
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/clientes') ||
     pathname.startsWith('/productos')
-  )
 
   if (!isPrivate) {
     return NextResponse.next()
@@ -39,7 +43,9 @@ export function middleware(request: NextRequest) {
 
   // Supabase sets a cookie named `sb-<ref>-auth-token` (prefix varies per project).
   // As a simple heuristic, check for any cookie including `sb-` and `-auth-token`.
-  const hasSupabaseAuthCookie = request.cookies.getAll().some((c) => c.name.includes('sb-') && c.name.endsWith('-auth-token'))
+  const hasSupabaseAuthCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.includes('sb-') && c.name.endsWith('-auth-token'))
 
   if (!hasSupabaseAuthCookie) {
     const url = request.nextUrl.clone()
@@ -52,11 +58,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/dashboard/:path*',
-    '/clientes/:path*',
-    '/productos/:path*'
-  ]
+  matcher: ['/dashboard/:path*', '/clientes/:path*', '/productos/:path*']
 }
-
-

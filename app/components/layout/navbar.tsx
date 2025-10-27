@@ -12,8 +12,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
-import { useCurrentUser } from '@/src/lib/auth'
-import { getSupabaseClient } from '@/src/lib/supabaseClient'
+import { useCurrentUser } from '@/app/lib/auth'
+import { getSupabaseClient } from '@/app/lib/supabaseClient'
 
 const MaterialIcon = ({
   name,

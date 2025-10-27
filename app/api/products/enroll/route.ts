@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseRouteClientWithAuth } from '@/src/lib/supabaseServer'
+import { getSupabaseRouteClientWithAuth } from '@/app/lib/supabaseServer'
 
 export async function POST(request: Request) {
   try {

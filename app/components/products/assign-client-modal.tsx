@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ClientAvatar } from "@/components/ui/client-avatar"
-import { getSupabaseClient } from "@/src/lib/supabaseClient"
+import { getSupabaseClient } from "@/app/lib/supabaseClient"
 
 interface Client {
   id: string

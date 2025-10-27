@@ -1,5 +1,5 @@
-import { Sidebar } from "@/src/components/layout/sidebar"
-import { Navbar } from "@/src/components/layout/navbar"
+import { Sidebar } from "@/app/components/layout/sidebar"
+import { Navbar } from "@/app/components/layout/navbar"
 
 export default function Home() {
   return (

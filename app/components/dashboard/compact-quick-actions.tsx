@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { UserPlus, Calendar, Settings, MoreHorizontal, Plus, GraduationCap } from "lucide-react"
-import { CreateClientModal } from "@/src/components/clients/create-client-modal"
+import { CreateClientModal } from "@/app/components/clients/create-client-modal"
 
 export function CompactQuickActions() {
   const [showCreateClient, setShowCreateClient] = useState(false)
