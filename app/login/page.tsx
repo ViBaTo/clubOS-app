@@ -72,8 +72,31 @@ export default function LoginPage() {
         })
         return
       }
-      if (data?.user) {
-        router.push('/clientes')
+      if (data?.user && data?.session) {
+        // Sync the session with the server to create HTTP cookies
+        try {
+          const response = await fetch('/api/auth/callback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token,
+            }),
+          })
+
+          if (!response.ok) {
+            throw new Error('Failed to sync session')
+          }
+
+          router.push('/clientes')
+        } catch (syncError) {
+          toast({
+            title: 'Error de sincronización',
+            description: 'Login exitoso pero error al sincronizar sesión. Intenta refrescar la página.'
+          })
+        }
       }
     } finally {
       setIsLoading(false)
