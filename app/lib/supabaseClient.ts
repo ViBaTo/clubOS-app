@@ -16,7 +16,14 @@ export function getSupabaseClient(): SupabaseClient {
     throw new Error('Supabase env missing: set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY')
   }
 
-  cachedClient = createClient(supabaseUrl, supabaseAnonKey)
+  cachedClient = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
+  })
   return cachedClient
 }
 

@@ -73,7 +73,7 @@ export default function LoginPage() {
         return
       }
       if (data?.user) {
-        router.push('/dashboard')
+        router.push('/clientes')
       }
     } finally {
       setIsLoading(false)

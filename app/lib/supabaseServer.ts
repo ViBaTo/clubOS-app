@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { NextRequest } from 'next/server'
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -12,7 +13,9 @@ export function getSupabaseAdminClient(): SupabaseClient {
   return createClient(url, serviceKey)
 }
 
-export function getSupabaseRouteClientWithAuth(request: Request): SupabaseClient {
+export function getSupabaseRouteClientWithAuth(
+  request: Request | NextRequest
+): SupabaseClient {
   const url = requireEnv('NEXT_PUBLIC_SUPABASE_URL')
   const anon = requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
   let authorization = request.headers.get('authorization') || ''
@@ -33,7 +36,8 @@ export function getSupabaseRouteClientWithAuth(request: Request): SupabaseClient
       try {
         const decoded = decodeURIComponent(value)
         const parsed = JSON.parse(decoded)
-        const token = parsed?.currentSession?.access_token || parsed?.access_token
+        const token =
+          parsed?.currentSession?.access_token || parsed?.access_token
         if (token) authorization = `Bearer ${token}`
       } catch (_) {
         // ignore parsing errors
@@ -42,8 +46,6 @@ export function getSupabaseRouteClientWithAuth(request: Request): SupabaseClient
   }
 
   return createClient(url, anon, {
-    global: { headers: authorization ? { Authorization: authorization } : {} },
+    global: { headers: authorization ? { Authorization: authorization } : {} }
   })
 }
-
-

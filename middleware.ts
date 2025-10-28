@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { getSupabaseRouteClientWithAuth } from '@/app/lib/supabaseServer'
 
 // Protect private routes by checking the Supabase auth cookie
 // Routes: /dashboard, /clientes, /productos/*, /clientes/[id]/*
@@ -13,7 +14,7 @@ const PUBLIC_PATHS = new Set([
   '/registro/exito'
 ])
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // In development, allow all requests to avoid false redirects since
@@ -41,20 +42,26 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Supabase sets a cookie named `sb-<ref>-auth-token` (prefix varies per project).
-  // As a simple heuristic, check for any cookie including `sb-` and `-auth-token`.
-  const hasSupabaseAuthCookie = request.cookies
-    .getAll()
-    .some((c) => c.name.includes('sb-') && c.name.endsWith('-auth-token'))
+  // Use server-side Supabase client to check authentication
+  try {
+    const supabase = getSupabaseRouteClientWithAuth(request)
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      url.searchParams.set('redirectedFrom', pathname)
+      return NextResponse.redirect(url)
+    }
 
-  if (!hasSupabaseAuthCookie) {
+    return NextResponse.next()
+  } catch (error) {
+    // If there's any error, redirect to login
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirectedFrom', pathname)
     return NextResponse.redirect(url)
   }
-
-  return NextResponse.next()
 }
 
 export const config = {
