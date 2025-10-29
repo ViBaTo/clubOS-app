@@ -46,13 +46,6 @@ interface SelectableProduct {
   meta?: any
 }
 
-const categories = [
-  'Principiante',
-  'Intermedio',
-  'Avanzado',
-  'Competición',
-  'Veterano'
-]
 const paymentMethods = ['Efectivo', 'Transferencia', 'Tarjeta', 'Bizum']
 
 export function CreateClientModal({
@@ -69,6 +62,13 @@ export function CreateClientModal({
   const [packages, setPackages] = useState<SelectableProduct[]>([])
   const [loadingPackages, setLoadingPackages] = useState(false)
   const [packagesError, setPackagesError] = useState<string | null>(null)
+
+  // Categories state (from Supabase)
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
+    []
+  )
+  const [loadingCategories, setLoadingCategories] = useState(false)
+  const [categoriesError, setCategoriesError] = useState<string | null>(null)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -139,6 +139,32 @@ export function CreateClientModal({
     if (open) loadPackages()
   }, [open, serviceType])
 
+  useEffect(() => {
+    const loadCategories = async () => {
+      setLoadingCategories(true)
+      setCategoriesError(null)
+      try {
+        const { getSupabaseClient } = await import('@/app/lib/supabaseClient')
+        const supabase = getSupabaseClient()
+        const session = (await supabase.auth.getSession()).data.session
+        const token = session?.access_token
+        const res = await fetch('/api/categories', {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined
+        })
+        const json = await res.json()
+        if (!res.ok)
+          throw new Error(json.error || 'No se pudieron cargar las categorías')
+        setCategories(Array.isArray(json.categories) ? json.categories : [])
+      } catch (e: any) {
+        setCategoriesError(e.message)
+        setCategories([])
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+    if (open) loadCategories()
+  }, [open])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -164,7 +190,7 @@ export function CreateClientModal({
         document_id: formData.documento.trim()
           ? formData.documento
           : (null as string | null),
-        categoria_id: null as string | null, // map UI category if/when you connect categories
+        categoria_id: formData.categoria || (null as string | null),
         status: 'active'
       }
 
@@ -391,22 +417,36 @@ export function CreateClientModal({
                       <SelectValue placeholder='Seleccionar categoría' />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          <div className='flex items-center gap-2'>
-                            <Badge
-                              variant='secondary'
-                              className={getCategoryBadgeColor(cat)}
-                            >
-                              {cat}
-                            </Badge>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {loadingCategories && (
+                        <div className='px-2 py-1 text-sm text-[#94A3B8]'>
+                          Cargando...
+                        </div>
+                      )}
+                      {!loadingCategories && categories.length === 0 && (
+                        <div className='px-2 py-1 text-sm text-[#94A3B8]'>
+                          No hay categorías disponibles
+                        </div>
+                      )}
+                      {!loadingCategories &&
+                        categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            <div className='flex items-center gap-2'>
+                              <Badge
+                                variant='secondary'
+                                className={getCategoryBadgeColor(cat.name)}
+                              >
+                                {cat.name}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   {errors.categoria && (
                     <p className='text-sm text-red-600'>{errors.categoria}</p>
+                  )}
+                  {categoriesError && (
+                    <p className='text-sm text-red-600'>{categoriesError}</p>
                   )}
                 </div>
               </div>
