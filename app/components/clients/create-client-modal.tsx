@@ -43,6 +43,7 @@ interface SelectableProduct {
   id: string
   name: string
   price: number
+  organizationId?: string | null
   meta?: any
 }
 
@@ -100,7 +101,7 @@ export function CreateClientModal({
       newErrors.email = 'Email inválido'
     }
     if (!formData.categoria) newErrors.categoria = 'La categoría es requerida'
-    // package optional until backend assignment is wired
+    if (!formData.packageId) newErrors.packageId = 'El paquete es requerido'
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -126,6 +127,7 @@ export function CreateClientModal({
           id: p.id,
           name: p.name,
           price: Number(p.price) || 0,
+          organizationId: p.organization_id ?? null,
           meta: p.configuration || {}
         }))
         setPackages(list)
@@ -204,6 +206,68 @@ export function CreateClientModal({
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(json.error || 'No se pudo crear el cliente')
+
+      const createdClientId: string | undefined = json?.client?.id
+
+      // Si hay paquete seleccionado, inscribir al cliente y registrar pago si procede
+      if (createdClientId && formData.packageId) {
+        const selected = packages.find((p) => p.id === formData.packageId)
+        const orgId = selected?.organizationId
+        if (!orgId) {
+          throw new Error(
+            'No se pudo determinar la organización para el paquete'
+          )
+        }
+        const enrollRes = await fetch('/api/products/enroll', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({
+            client_id: createdClientId,
+            product_id: selected.id,
+            organization_id: orgId,
+            quantity: 1,
+            unit_price: selected.price,
+            total_price: selected.price,
+            status: 'active'
+          })
+        })
+        const enrollJson = await enrollRes.json().catch(() => ({}))
+        if (!enrollRes.ok)
+          throw new Error(
+            enrollJson.error || 'No se pudo inscribir al cliente en el paquete'
+          )
+
+        const saleId: string | undefined = enrollJson?.enrollment?.id
+        if (saleId && formData.isPaid) {
+          const methodMap: Record<string, string> = {
+            Efectivo: 'cash',
+            Transferencia: 'transfer',
+            Tarjeta: 'card',
+            Bizum: 'bizum'
+          }
+          const paymentRes = await fetch(
+            `/api/clients/${createdClientId}/payments`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+              },
+              body: JSON.stringify({
+                sale_id: saleId,
+                amount: selected.price,
+                payment_method: methodMap[formData.paymentMethod] || 'cash'
+              })
+            }
+          )
+          const payJson = await paymentRes.json().catch(() => ({}))
+          if (!paymentRes.ok)
+            throw new Error(payJson.error || 'No se pudo registrar el pago')
+        }
+      }
 
       setShowSuccess(true)
       setTimeout(() => {

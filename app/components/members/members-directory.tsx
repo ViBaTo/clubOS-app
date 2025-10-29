@@ -26,18 +26,6 @@ import { cn } from '@/lib/utils'
 import { CreateClientModal } from '@/app/components/clients/create-client-modal'
 import { getSupabaseClient } from '@/app/lib/supabaseClient'
 import { getCategoryBadgeColorByName } from '@/lib/category-colors'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger
-} from '@/components/ui/alert-dialog'
-import { toast } from '@/hooks/use-toast'
 
 const MaterialIcon = ({
   name,
@@ -84,7 +72,6 @@ export function MembersDirectory() {
   const [members, setMembers] = useState<Member[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -140,33 +127,6 @@ export function MembersDirectory() {
 
   const handleViewProfile = (memberId: string) => {
     router.push(`/clientes/${memberId}/perfil`)
-  }
-
-  const handleDelete = async (memberId: string, memberName?: string) => {
-    try {
-      setDeletingId(memberId)
-      const supabase = getSupabaseClient()
-      const session = (await supabase.auth.getSession()).data.session
-      const token = session?.access_token
-      const res = await fetch(`/api/clients/${memberId}`, {
-        method: 'DELETE',
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined
-      })
-      const json = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(json.error || 'No se pudo eliminar')
-      setMembers((prev) =>
-        prev ? prev.filter((m) => m.id !== memberId) : prev
-      )
-      toast({ title: 'Cliente eliminado', description: memberName })
-    } catch (e: any) {
-      toast({
-        title: 'Error al eliminar',
-        description: e.message,
-        variant: 'destructive' as any
-      })
-    } finally {
-      setDeletingId(null)
-    }
   }
 
   return (
@@ -323,44 +283,6 @@ export function MembersDirectory() {
                               className='text-base text-muted-foreground hover:text-foreground'
                             />
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant='ghost'
-                                size='sm'
-                                className='h-8 w-8 p-0 text-red-600 hover:bg-red-600/5 font-medium rounded-lg transition-all duration-150'
-                                disabled={deletingId === member.id}
-                              >
-                                <MaterialIcon
-                                  name='delete'
-                                  className='text-base text-red-600 hover:text-red-700'
-                                />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  ¿Eliminar cliente?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Esta acción no se puede deshacer. Se eliminará
-                                  permanentemente el perfil de {member.nombre} y
-                                  todos sus datos asociados.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() =>
-                                    handleDelete(member.id, member.nombre)
-                                  }
-                                  className='bg-red-600 hover:bg-red-700'
-                                >
-                                  Eliminar
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -420,44 +342,6 @@ export function MembersDirectory() {
                         className='text-base text-muted-foreground'
                       />
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          className='h-8 w-8 p-0 text-red-600 hover:bg-red-600/5 font-medium rounded-lg transition-all duration-150'
-                          disabled={deletingId === member.id}
-                        >
-                          <MaterialIcon
-                            name='delete'
-                            className='text-base text-red-600'
-                          />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            ¿Eliminar cliente?
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Se eliminará
-                            permanentemente el perfil de {member.nombre} y todos
-                            sus datos asociados.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() =>
-                              handleDelete(member.id, member.nombre)
-                            }
-                            className='bg-red-600 hover:bg-red-700'
-                          >
-                            Eliminar
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
                   </div>
                 </div>
               </CardContent>
