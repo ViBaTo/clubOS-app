@@ -94,6 +94,8 @@ interface ClassPackage {
   proximoPago?: string
   pagosRealizados: PaymentRecord[]
   autoRenovacion: boolean
+  paymentId?: string
+  receiptUrl?: string
 }
 
 interface AttendanceRecord {
@@ -151,6 +153,12 @@ export default function ClientProfilePage() {
     loading: false,
     products: [] as any[]
   })
+
+  const [receiptUpload, setReceiptUpload] = useState({
+    packageId: '' as string,
+    uploading: false
+  })
+  const receiptInputId = 'receipt-file-input'
 
   const [paymentModal, setPaymentModal] = useState({
     isOpen: false,
@@ -237,6 +245,7 @@ export default function ClientProfilePage() {
 
         const mapped = purchases.map((ps) => {
           const product = ps.products || {}
+          const payment = (ps.payments && ps.payments[0]) || null
           const total = Number(ps.classes_total ?? 0)
           const remaining = Number(ps.classes_remaining ?? 0)
           const safeTotal = total > 0 ? total : 1
@@ -281,7 +290,9 @@ export default function ClientProfilePage() {
             planPago: 'Completo',
             proximoPago: undefined,
             pagosRealizados: [],
-            autoRenovacion: false
+            autoRenovacion: false,
+            paymentId: payment?.id,
+            receiptUrl: payment?.receipt_url || undefined
           } as ClassPackage
         })
 
@@ -389,6 +400,7 @@ export default function ClientProfilePage() {
           const purchases = (json2?.purchases || []) as any[]
           const mapped = purchases.map((ps) => {
             const product = ps.products || {}
+            const payment = (ps.payments && ps.payments[0]) || null
             const total = Number(ps.classes_total ?? 0)
             const remaining = Number(ps.classes_remaining ?? 0)
             const safeTotal = total > 0 ? total : 1
@@ -436,7 +448,9 @@ export default function ClientProfilePage() {
               planPago: 'Completo',
               proximoPago: undefined,
               pagosRealizados: [],
-              autoRenovacion: false
+              autoRenovacion: false,
+              paymentId: payment?.id,
+              receiptUrl: payment?.receipt_url || undefined
             } as ClassPackage
           })
           setClient((prev) => {
@@ -848,6 +862,69 @@ export default function ClientProfilePage() {
       : 0
   }
 
+  const handleReceiptFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    try {
+      const file = e.target.files?.[0]
+      e.currentTarget.value = ''
+      if (!file || !receiptUpload.packageId || !client) return
+
+      setReceiptUpload((prev) => ({ ...prev, uploading: true }))
+      const supabase = getSupabaseClient()
+
+      const path = `receipts/${receiptUpload.packageId}/${Date.now()}-${
+        file.name
+      }`
+      const { error: upErr } = await supabase.storage
+        .from('receipts')
+        .upload(path, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+      if (upErr) throw upErr
+
+      const { data: pub } = supabase.storage.from('receipts').getPublicUrl(path)
+      const url = pub.publicUrl
+
+      const session = (await supabase.auth.getSession()).data.session
+      const token = session?.access_token
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+      if (token) headers.Authorization = `Bearer ${token}`
+
+      const res = await fetch(`/api/clients/${client.id}/payments`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          sale_id: receiptUpload.packageId,
+          receipt_url: url
+        })
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok)
+        throw new Error(json.error || 'No se pudo guardar la factura')
+
+      setClient((prev) => {
+        if (!prev) return prev
+        const paquetes = prev.paquetes.map((p) =>
+          p.id === receiptUpload.packageId ? { ...p, receiptUrl: url } : p
+        )
+        return { ...prev, paquetes }
+      })
+
+      toast({
+        title: 'Factura añadida',
+        description: 'El documento ha sido guardado.'
+      })
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' })
+    } finally {
+      setReceiptUpload({ packageId: '', uploading: false })
+    }
+  }
+
   if (!client) {
     return (
       <div className='flex h-screen bg-[#F1F5F9]'>
@@ -875,6 +952,13 @@ export default function ClientProfilePage() {
 
         <main className='flex-1 overflow-y-auto p-8'>
           <div className='max-w-7xl mx-auto space-y-8'>
+            <input
+              id={receiptInputId}
+              type='file'
+              accept='application/pdf,image/*'
+              className='hidden'
+              onChange={handleReceiptFileChange}
+            />
             {/* Breadcrumb */}
             <div className='flex items-center gap-2 text-sm text-[#94A3B8]'>
               <button
@@ -1463,12 +1547,28 @@ export default function ClientProfilePage() {
                             size='sm'
                             variant='outline'
                             className='text-xs px-3 py-1 h-7 border-gray-200 hover:border-gray-300 bg-transparent'
+                            onClick={() => {
+                              if (paquete.receiptUrl) {
+                                window.open(paquete.receiptUrl, '_blank')
+                              } else {
+                                setReceiptUpload({
+                                  packageId: paquete.id,
+                                  uploading: false
+                                })
+                                const input = document.getElementById(
+                                  receiptInputId
+                                ) as HTMLInputElement | null
+                                input?.click()
+                              }
+                            }}
                           >
                             <MaterialIcon
                               name='receipt'
                               className='text-sm mr-1'
                             />
-                            Factura
+                            {paquete.receiptUrl
+                              ? 'Ver factura'
+                              : 'Añadir factura'}
                           </Button>
                         </div>
 

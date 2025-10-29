@@ -18,7 +18,9 @@ export async function GET(
     const { data, error } = await supabase
       .from('product_sales')
       .select(
-        `id, client_id, product_id, organization_id, quantity, unit_price, total_price, discount, status, payment_status, classes_total, classes_remaining, expiry_date, created_at, updated_at, products ( name, product_type )`
+        `id, client_id, product_id, organization_id, quantity, unit_price, total_price, discount, status, payment_status, classes_total, classes_remaining, expiry_date, created_at, updated_at,
+        products ( name, product_type ),
+        payments ( id, receipt_url, amount, payment_date, payment_method )`
       )
       .eq('client_id', id)
       .order('created_at', { ascending: false })

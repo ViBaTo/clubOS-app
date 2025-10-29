@@ -15,7 +15,7 @@ export async function POST(
 
     const { id: clientId } = await context.params
     const body = await request.json().catch(() => ({}))
-    const { sale_id } = body || {}
+    const { sale_id, amount, payment_method, receipt_url } = body || {}
 
     if (!clientId || !sale_id)
       return NextResponse.json(
@@ -26,7 +26,7 @@ export async function POST(
     // Verify sale belongs to client
     const { data: sale, error: saleErr } = await supabase
       .from('product_sales')
-      .select('id, client_id')
+      .select('id, client_id, organization_id, total_price')
       .eq('id', sale_id)
       .eq('client_id', clientId)
       .maybeSingle()
@@ -36,6 +36,36 @@ export async function POST(
         { error: 'Venta no encontrada para este cliente' },
         { status: 404 }
       )
+
+    // Ensure a payment row exists and optionally set receipt_url
+    const { data: existingPayment } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('product_sale_id', sale_id)
+      .maybeSingle()
+
+    let paymentId: string | null = existingPayment?.id ?? null
+    if (!paymentId) {
+      const { data: createdPayment } = await supabase
+        .from('payments')
+        .insert({
+          organization_id: sale.organization_id,
+          client_id: clientId,
+          product_sale_id: sale_id,
+          amount: amount ?? sale.total_price ?? 0,
+          payment_method: payment_method ?? 'cash'
+        })
+        .select('id')
+        .single()
+      paymentId = createdPayment?.id ?? null
+    }
+
+    if (paymentId && receipt_url) {
+      await supabase
+        .from('payments')
+        .update({ receipt_url })
+        .eq('id', paymentId)
+    }
 
     const { data: updated, error: updateErr } = await supabase
       .from('product_sales')
@@ -50,7 +80,7 @@ export async function POST(
     if (updateErr)
       return NextResponse.json({ error: updateErr.message }, { status: 400 })
 
-    return NextResponse.json({ sale: updated })
+    return NextResponse.json({ sale: updated, payment_id: paymentId })
   } catch (e: any) {
     return NextResponse.json(
       { error: e.message || 'Unexpected error' },
