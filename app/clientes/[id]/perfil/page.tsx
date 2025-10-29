@@ -159,6 +159,11 @@ export default function ClientProfilePage() {
     uploading: false
   })
   const receiptInputId = 'receipt-file-input'
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    packageId: '' as string,
+    loading: false
+  })
 
   const [paymentModal, setPaymentModal] = useState({
     isOpen: false,
@@ -1512,7 +1517,7 @@ export default function ClientProfilePage() {
                           </div>
                         </div>
 
-                        <div className='flex gap-2'>
+                        <div className='flex flex-wrap gap-2'>
                           {paquete.estado === 'Activo' &&
                             paquete.clasesUtilizadas <
                               paquete.clasesTotales && (
@@ -1546,7 +1551,7 @@ export default function ClientProfilePage() {
                           <Button
                             size='sm'
                             variant='outline'
-                            className='text-xs px-3 py-1 h-7 border-gray-200 hover:border-gray-300 bg-transparent'
+                            className='text-xs px-3 py-1 h-7 border-gray-200 hover:border-gray-300 bg-transparent flex-1 min-w-[120px]'
                             onClick={() => {
                               if (paquete.receiptUrl) {
                                 window.open(paquete.receiptUrl, '_blank')
@@ -1569,6 +1574,24 @@ export default function ClientProfilePage() {
                             {paquete.receiptUrl
                               ? 'Ver factura'
                               : 'Añadir factura'}
+                          </Button>
+                          <Button
+                            size='sm'
+                            variant='destructive'
+                            className='text-xs px-3 py-1 h-7 flex-1 min-w-[120px]'
+                            onClick={() =>
+                              setDeleteModal({
+                                isOpen: true,
+                                packageId: paquete.id,
+                                loading: false
+                              })
+                            }
+                          >
+                            <MaterialIcon
+                              name='delete'
+                              className='text-sm mr-1'
+                            />
+                            Eliminar
                           </Button>
                         </div>
 
@@ -1683,6 +1706,82 @@ export default function ClientProfilePage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+
+            {/* Delete Package Confirm */}
+            <AlertDialog
+              open={deleteModal.isOpen}
+              onOpenChange={(open) =>
+                setDeleteModal((prev) => ({ ...prev, isOpen: open }))
+              }
+            >
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Eliminar paquete</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción eliminará el paquete y sus asistencias y pagos
+                    asociados. No se puede deshacer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      if (!deleteModal.packageId) return
+                      try {
+                        setDeleteModal((prev) => ({ ...prev, loading: true }))
+                        const supabase = getSupabaseClient()
+                        const session = (await supabase.auth.getSession()).data
+                          .session
+                        const token = session?.access_token
+                        const headers: Record<string, string> = {}
+                        if (token) headers.Authorization = `Bearer ${token}`
+                        const clientId = String(params?.id || '')
+                        const res = await fetch(
+                          `/api/clients/${clientId}/purchases/${deleteModal.packageId}`,
+                          {
+                            method: 'DELETE',
+                            headers
+                          }
+                        )
+                        const json = await res.json().catch(() => ({}))
+                        if (!res.ok)
+                          throw new Error(
+                            json.error || 'No se pudo eliminar el paquete'
+                          )
+                        setClient((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                paquetes: prev.paquetes.filter(
+                                  (p) => p.id !== deleteModal.packageId
+                                )
+                              }
+                            : prev
+                        )
+                        toast({
+                          title: 'Paquete eliminado',
+                          description: 'Se ha eliminado correctamente.'
+                        })
+                      } catch (e: any) {
+                        toast({
+                          title: 'Error',
+                          description: e.message,
+                          variant: 'destructive' as any
+                        })
+                      } finally {
+                        setDeleteModal({
+                          isOpen: false,
+                          packageId: '',
+                          loading: false
+                        })
+                      }
+                    }}
+                  >
+                    Eliminar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
             <Card className='bg-white rounded-xl shadow-sm border-0 p-8 hover:shadow-md transition-shadow duration-200'>
               <CardHeader className='p-0 mb-6'>
