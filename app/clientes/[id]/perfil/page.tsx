@@ -145,6 +145,13 @@ export default function ClientProfilePage() {
     comments: ''
   })
 
+  const [addPackageModal, setAddPackageModal] = useState({
+    isOpen: false,
+    selectedProductId: '' as string,
+    loading: false,
+    products: [] as any[]
+  })
+
   const [paymentModal, setPaymentModal] = useState({
     isOpen: false,
     packageId: '',
@@ -278,7 +285,30 @@ export default function ClientProfilePage() {
           } as ClassPackage
         })
 
-        setClient((prev) => (prev ? { ...prev, paquetes: mapped } : prev))
+        setClient((prev) => {
+          if (prev) return { ...prev, paquetes: mapped }
+          const idStr = String(params?.id || '')
+          return {
+            id: idStr,
+            nombre: 'Sin nombre',
+            email: '',
+            telefono: '',
+            fechaNacimiento: new Date().toISOString().substring(0, 10),
+            dni: '',
+            direccion: '',
+            contactoEmergencia: '',
+            categoria: '',
+            categoriaId: null,
+            estado: 'Activo',
+            avatar: undefined,
+            fechaRegistro: new Date().toISOString(),
+            instructorPreferido: '',
+            horarioHabitual: '',
+            rating: 0,
+            paquetes: mapped,
+            historialAsistencia: []
+          }
+        })
       } catch (e: any) {
         toast({
           title: 'Error',
@@ -289,6 +319,171 @@ export default function ClientProfilePage() {
     }
     loadPurchases()
   }, [params?.id])
+
+  const openAddPackageModal = async () => {
+    try {
+      setAddPackageModal((prev) => ({ ...prev, isOpen: true, loading: true }))
+      const supabase = getSupabaseClient()
+      const session = (await supabase.auth.getSession()).data.session
+      const token = session?.access_token
+      const headers: Record<string, string> = {}
+      if (token) headers.Authorization = `Bearer ${token}`
+      const res = await fetch('/api/products', { headers })
+      const json = await res.json()
+      if (!res.ok)
+        throw new Error(json.error || 'No se pudieron cargar los productos')
+      const products = (json.products || []).filter(
+        (p: any) => p.is_active !== false
+      )
+      setAddPackageModal((prev) => ({ ...prev, products }))
+    } catch (e) {
+      setAddPackageModal((prev) => ({ ...prev, products: [] }))
+    } finally {
+      setAddPackageModal((prev) => ({ ...prev, loading: false }))
+    }
+  }
+
+  const handleAddPackage = async () => {
+    try {
+      const product = addPackageModal.products.find(
+        (p) => p.id === addPackageModal.selectedProductId
+      )
+      if (!product || !client) return
+      const supabase = getSupabaseClient()
+      const session = (await supabase.auth.getSession()).data.session
+      const token = session?.access_token
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+      if (token) headers.Authorization = `Bearer ${token}`
+
+      const payload: Record<string, any> = {
+        client_id: client.id,
+        product_id: product.id,
+        quantity: 1,
+        unit_price: product.price ?? 0,
+        total_price: product.price ?? 0,
+        status: 'active',
+        organization_id: product.organization_id ?? undefined
+      }
+      if (product.classes_included != null) {
+        payload.classes_total = product.classes_included
+        payload.classes_remaining = product.classes_included
+      }
+
+      const res = await fetch('/api/products/enroll', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error || 'No se pudo añadir el paquete')
+
+      // Refresh purchases to reflect the new package
+      {
+        const res2 = await fetch(`/api/clients/${client.id}/purchases`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined
+        })
+        const json2 = await res2.json()
+        if (res2.ok) {
+          const purchases = (json2?.purchases || []) as any[]
+          const mapped = purchases.map((ps) => {
+            const product = ps.products || {}
+            const total = Number(ps.classes_total ?? 0)
+            const remaining = Number(ps.classes_remaining ?? 0)
+            const safeTotal = total > 0 ? total : 1
+            const used = Math.max(0, safeTotal - (total > 0 ? remaining : 0))
+            const estadoMap: Record<string, 'Activo' | 'Vencido' | 'Agotado'> =
+              {
+                active: 'Activo',
+                expired: 'Vencido',
+                consumed: 'Agotado',
+                cancelled: 'Vencido'
+              }
+            const pagoMap: Record<string, 'Pagado' | 'Pendiente' | 'Vencido'> =
+              {
+                paid: 'Pagado',
+                pending: 'Pendiente',
+                overdue: 'Vencido',
+                partial: 'Pendiente'
+              }
+            const tipoMap: Record<
+              string,
+              'Grupal' | 'Individual' | 'Academia'
+            > = {
+              class_package: 'Grupal',
+              individual_class: 'Individual',
+              academy: 'Academia'
+            }
+            return {
+              id: ps.id as string,
+              nombre: String(product.name || 'Producto'),
+              fechaCompra: String(ps.created_at || new Date().toISOString()),
+              fechaVencimiento: String(
+                ps.expiry_date || ps.created_at || new Date().toISOString()
+              ),
+              clasesTotales: safeTotal,
+              clasesUtilizadas: used,
+              estado: estadoMap[String(ps.status || 'active')] || 'Activo',
+              precio: Number(ps.total_price ?? ps.unit_price ?? 0),
+              instructor: undefined,
+              tipoClase:
+                tipoMap[String(product.product_type || 'academy')] ||
+                'Academia',
+              estadoPago:
+                pagoMap[String(ps.payment_status || 'pending')] || 'Pendiente',
+              metodoPago: undefined,
+              planPago: 'Completo',
+              proximoPago: undefined,
+              pagosRealizados: [],
+              autoRenovacion: false
+            } as ClassPackage
+          })
+          setClient((prev) => {
+            if (prev) return { ...prev, paquetes: mapped }
+            const idStr = String(params?.id || '')
+            return {
+              id: idStr,
+              nombre: 'Sin nombre',
+              email: '',
+              telefono: '',
+              fechaNacimiento: new Date().toISOString().substring(0, 10),
+              dni: '',
+              direccion: '',
+              contactoEmergencia: '',
+              categoria: '',
+              categoriaId: null,
+              estado: 'Activo',
+              avatar: undefined,
+              fechaRegistro: new Date().toISOString(),
+              instructorPreferido: '',
+              horarioHabitual: '',
+              rating: 0,
+              paquetes: mapped,
+              historialAsistencia: []
+            }
+          })
+        }
+      }
+
+      toast({
+        title: 'Paquete añadido',
+        description: 'El paquete se ha asignado al cliente.'
+      })
+      setAddPackageModal({
+        isOpen: false,
+        selectedProductId: '',
+        loading: false,
+        products: []
+      })
+    } catch (e: any) {
+      toast({
+        title: 'Error',
+        description: e.message,
+        variant: 'destructive' as any
+      })
+    }
+  }
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -567,23 +762,52 @@ export default function ClientProfilePage() {
       return
     }
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const supabase = getSupabaseClient()
+      const session = (await supabase.auth.getSession()).data.session
+      const token = session?.access_token
+      const clientId = String(params?.id || '')
+      if (!clientId || !paymentModal.packageId) return
 
-    toast({
-      title: 'Pago procesado',
-      description: 'El pago ha sido registrado correctamente.'
-    })
+      const res = await fetch(`/api/clients/${clientId}/payments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ sale_id: paymentModal.packageId })
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error || 'No se pudo procesar el pago')
 
-    // Reset and close modal
-    setPaymentModal({
-      isOpen: false,
-      packageId: '',
-      metodo: '',
-      cantidad: 0,
-      comprobante: null,
-      notas: ''
-    })
+      // Update local package payment status
+      setClient((prev) => {
+        if (!prev) return prev
+        const paquetes = prev.paquetes.map((p) =>
+          p.id === paymentModal.packageId
+            ? { ...p, estadoPago: 'Pagado' as const }
+            : p
+        )
+        return { ...prev, paquetes }
+      })
+
+      toast({
+        title: 'Pago procesado',
+        description: 'El pago ha sido registrado correctamente.'
+      })
+
+      // Reset and close modal
+      setPaymentModal({
+        isOpen: false,
+        packageId: '',
+        metodo: '',
+        cantidad: 0,
+        comprobante: null,
+        notas: ''
+      })
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' })
+    }
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1059,13 +1283,25 @@ export default function ClientProfilePage() {
 
             <Card className='bg-white rounded-xl shadow-sm border-0 p-8 hover:shadow-md transition-shadow duration-200'>
               <CardHeader className='p-0 mb-6'>
-                <CardTitle className='text-xl font-semibold text-[#0F172A] leading-snug flex items-center gap-3'>
-                  <MaterialIcon
-                    name='inventory'
-                    className='text-2xl text-[#1E40AF]'
-                  />
-                  Paquetes Adquiridos
-                </CardTitle>
+                <div className='flex items-center justify-between'>
+                  <CardTitle className='text-xl font-semibold text-[#0F172A] leading-snug flex items-center gap-3'>
+                    <MaterialIcon
+                      name='inventory'
+                      className='text-2xl text-[#1E40AF]'
+                    />
+                    Paquetes Adquiridos
+                  </CardTitle>
+                  <Button
+                    variant='default'
+                    className='bg-[#1E40AF] hover:bg-[#1D4ED8] text-white'
+                    onClick={openAddPackageModal}
+                  >
+                    <span className='material-symbols-outlined text-base mr-1'>
+                      add
+                    </span>
+                    Añadir paquete
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className='p-0 space-y-4'>
                 {client?.paquetes.map((paquete) => (
@@ -1250,6 +1486,103 @@ export default function ClientProfilePage() {
                 ))}
               </CardContent>
             </Card>
+
+            {/* Add Package Modal */}
+            <Dialog
+              open={addPackageModal.isOpen}
+              onOpenChange={(open) =>
+                setAddPackageModal((prev) => ({ ...prev, isOpen: open }))
+              }
+            >
+              <DialogContent className='max-w-2xl'>
+                <DialogHeader>
+                  <DialogTitle>Agregar paquete al cliente</DialogTitle>
+                  <DialogDescription>
+                    Selecciona un producto/paquete para asignar a este cliente.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className='space-y-4 max-h-[60vh] overflow-y-auto'>
+                  {addPackageModal.loading ? (
+                    <div className='text-[#64748B]'>Cargando productos...</div>
+                  ) : addPackageModal.products.length === 0 ? (
+                    <div className='text-[#64748B]'>
+                      No hay productos disponibles.
+                    </div>
+                  ) : (
+                    <div className='divide-y rounded-lg border'>
+                      {addPackageModal.products.map((p) => (
+                        <label
+                          key={p.id}
+                          className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-[#F8FAFC] ${
+                            addPackageModal.selectedProductId === p.id
+                              ? 'bg-blue-50'
+                              : ''
+                          }`}
+                        >
+                          <input
+                            type='radio'
+                            name='product'
+                            className='accent-[#1E40AF]'
+                            checked={addPackageModal.selectedProductId === p.id}
+                            onChange={() =>
+                              setAddPackageModal((prev) => ({
+                                ...prev,
+                                selectedProductId: p.id
+                              }))
+                            }
+                          />
+                          <div className='flex-1'>
+                            <div className='flex items-center justify-between'>
+                              <div>
+                                <p className='font-medium text-[#0F172A]'>
+                                  {p.name}
+                                </p>
+                                <p className='text-sm text-[#64748B] capitalize'>
+                                  {(p.product_type || '').replace('_', ' ')}
+                                </p>
+                              </div>
+                              <div className='text-[#0F172A] font-semibold'>
+                                €{Number(p.price || 0).toFixed(2)}
+                              </div>
+                            </div>
+                            <div className='text-xs text-[#94A3B8] mt-1'>
+                              {p.classes_included != null
+                                ? `${p.classes_included} clases incluidas`
+                                : 'Clases no especificadas'}
+                              {p.duration_days
+                                ? ` • ${p.duration_days} días`
+                                : ''}
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant='outline'
+                    onClick={() =>
+                      setAddPackageModal({
+                        isOpen: false,
+                        selectedProductId: '',
+                        loading: false,
+                        products: []
+                      })
+                    }
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    className='bg-[#1E40AF] hover:bg-[#1D4ED8]'
+                    disabled={!addPackageModal.selectedProductId}
+                    onClick={handleAddPackage}
+                  >
+                    Añadir
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             <Card className='bg-white rounded-xl shadow-sm border-0 p-8 hover:shadow-md transition-shadow duration-200'>
               <CardHeader className='p-0 mb-6'>

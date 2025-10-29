@@ -78,12 +78,12 @@ export default function LoginPage() {
           const response = await fetch('/api/auth/callback', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               access_token: data.session.access_token,
-              refresh_token: data.session.refresh_token,
-            }),
+              refresh_token: data.session.refresh_token
+            })
           })
 
           if (!response.ok) {
@@ -94,7 +94,8 @@ export default function LoginPage() {
         } catch (syncError) {
           toast({
             title: 'Error de sincronización',
-            description: 'Login exitoso pero error al sincronizar sesión. Intenta refrescar la página.'
+            description:
+              'Login exitoso pero error al sincronizar sesión. Intenta refrescar la página.'
           })
         }
       }
