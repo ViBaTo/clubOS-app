@@ -212,6 +212,85 @@ export default function ClientProfilePage() {
   }, [params?.id])
 
   useEffect(() => {
+    const loadPurchases = async () => {
+      try {
+        const id = String(params?.id || '')
+        if (!id) return
+        const supabase = getSupabaseClient()
+        const session = (await supabase.auth.getSession()).data.session
+        const token = session?.access_token
+        const res = await fetch(`/api/clients/${id}/purchases`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined
+        })
+        const json = await res.json()
+        if (!res.ok)
+          throw new Error(json.error || 'No se pudieron cargar los paquetes')
+
+        const purchases = (json?.purchases || []) as any[]
+
+        const mapped = purchases.map((ps) => {
+          const product = ps.products || {}
+          const total = Number(ps.classes_total ?? 0)
+          const remaining = Number(ps.classes_remaining ?? 0)
+          const safeTotal = total > 0 ? total : 1
+          const used = Math.max(0, safeTotal - (total > 0 ? remaining : 0))
+
+          const estadoMap: Record<string, 'Activo' | 'Vencido' | 'Agotado'> = {
+            active: 'Activo',
+            expired: 'Vencido',
+            consumed: 'Agotado',
+            cancelled: 'Vencido'
+          }
+          const pagoMap: Record<string, 'Pagado' | 'Pendiente' | 'Vencido'> = {
+            paid: 'Pagado',
+            pending: 'Pendiente',
+            overdue: 'Vencido',
+            partial: 'Pendiente'
+          }
+          const tipoMap: Record<string, 'Grupal' | 'Individual' | 'Academia'> =
+            {
+              class_package: 'Grupal',
+              individual_class: 'Individual',
+              academy: 'Academia'
+            }
+
+          return {
+            id: ps.id as string,
+            nombre: String(product.name || 'Producto'),
+            fechaCompra: String(ps.created_at || new Date().toISOString()),
+            fechaVencimiento: String(
+              ps.expiry_date || ps.created_at || new Date().toISOString()
+            ),
+            clasesTotales: safeTotal,
+            clasesUtilizadas: used,
+            estado: estadoMap[String(ps.status || 'active')] || 'Activo',
+            precio: Number(ps.total_price ?? ps.unit_price ?? 0),
+            instructor: undefined,
+            tipoClase:
+              tipoMap[String(product.product_type || 'academy')] || 'Academia',
+            estadoPago:
+              pagoMap[String(ps.payment_status || 'pending')] || 'Pendiente',
+            metodoPago: undefined,
+            planPago: 'Completo',
+            proximoPago: undefined,
+            pagosRealizados: [],
+            autoRenovacion: false
+          } as ClassPackage
+        })
+
+        setClient((prev) => (prev ? { ...prev, paquetes: mapped } : prev))
+      } catch (e: any) {
+        toast({
+          title: 'Error',
+          description: e.message,
+          variant: 'destructive' as any
+        })
+      }
+    }
+    loadPurchases()
+  }, [params?.id])
+
+  useEffect(() => {
     const loadCategories = async () => {
       try {
         setCategoriesLoading(true)
@@ -341,22 +420,64 @@ export default function ClientProfilePage() {
       return
     }
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    try {
+      const supabase = getSupabaseClient()
+      const session = (await supabase.auth.getSession()).data.session
+      const token = session?.access_token
+      const clientId = String(params?.id || '')
+      if (!clientId || !attendanceModal.packageId) return
 
-    toast({
-      title: 'Asistencia marcada',
-      description: 'La clase ha sido marcada como completada correctamente.'
-    })
+      const res = await fetch(`/api/clients/${clientId}/attendance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          sale_id: attendanceModal.packageId,
+          instructor: attendanceModal.instructor,
+          date: attendanceModal.date,
+          notes: attendanceModal.comments,
+          classes_used: 1
+        })
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok)
+        throw new Error(json.error || 'No se pudo registrar la asistencia')
 
-    // Reset and close modal
-    setAttendanceModal({
-      isOpen: false,
-      packageId: '',
-      date: new Date().toISOString().split('T')[0],
-      instructor: '',
-      comments: ''
-    })
+      // Update local UI: decrement remaining -> increment utilizadas
+      setClient((prev) => {
+        if (!prev) return prev
+        const paquetes = prev.paquetes.map((p) => {
+          if (p.id !== attendanceModal.packageId) return p
+          const total = Math.max(1, Number(p.clasesTotales || 1))
+          const usadas = Math.min(total, Number(p.clasesUtilizadas || 0) + 1)
+          const estado = usadas >= total ? 'Agotado' : p.estado
+          return { ...p, clasesUtilizadas: usadas, estado }
+        })
+        return { ...prev, paquetes }
+      })
+
+      toast({
+        title: 'Asistencia marcada',
+        description: 'La clase ha sido marcada como completada correctamente.'
+      })
+
+      // Reset and close modal
+      setAttendanceModal({
+        isOpen: false,
+        packageId: '',
+        date: new Date().toISOString().split('T')[0],
+        instructor: '',
+        comments: ''
+      })
+    } catch (e: any) {
+      toast({
+        title: 'Error',
+        description: e.message,
+        variant: 'destructive'
+      })
+    }
   }
 
   const getStatusBadgeColor = (estado: string) => {
