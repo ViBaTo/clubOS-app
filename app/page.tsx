@@ -1,5 +1,6 @@
 import { Sidebar } from "@/app/components/layout/sidebar"
 import { Navbar } from "@/app/components/layout/navbar"
+import { BottomNav } from "@/components/layout/BottomNav"
 
 export default function Home() {
   return (
@@ -9,7 +10,7 @@ export default function Home() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar />
 
-        <main className="flex-1 overflow-y-auto p-8">
+        <main className="flex-1 overflow-y-auto p-8 pb-20 md:pb-8">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
@@ -83,6 +84,7 @@ export default function Home() {
             </div>
           </div>
         </main>
+        <BottomNav />
       </div>
     </div>
   )

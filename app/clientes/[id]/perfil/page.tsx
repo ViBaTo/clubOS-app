@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Sidebar } from '@/app/components/layout/sidebar'
 import { Navbar } from '@/app/components/layout/navbar'
+import { BottomNav } from '@/components/layout/BottomNav'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -936,13 +937,14 @@ export default function ClientProfilePage() {
         <Sidebar />
         <div className='flex-1 flex flex-col overflow-hidden'>
           <Navbar />
-          <main className='flex-1 overflow-y-auto p-8'>
+          <main className='flex-1 overflow-y-auto p-8 pb-20 md:pb-8'>
             <div className='max-w-7xl mx-auto space-y-8'>
               <Card className='bg-white rounded-xl shadow-sm border-0 p-8'>
                 <div className='text-[#64748B]'>Cargando cliente...</div>
               </Card>
             </div>
           </main>
+          <BottomNav />
         </div>
       </div>
     )
@@ -955,7 +957,7 @@ export default function ClientProfilePage() {
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Navbar />
 
-        <main className='flex-1 overflow-y-auto p-8'>
+        <main className='flex-1 overflow-y-auto p-8 pb-20 md:pb-8'>
           <div className='max-w-7xl mx-auto space-y-8'>
             <input
               id={receiptInputId}
@@ -1897,6 +1899,7 @@ export default function ClientProfilePage() {
             </Card>
           </div>
         </main>
+        <BottomNav />
       </div>
 
       <Dialog

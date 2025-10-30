@@ -10,6 +10,8 @@ import { CheckCircle2, Clock, Sparkles } from "lucide-react"
 export default function ExitoPage() {
   const searchParams = useSearchParams()
   const type = searchParams.get("type")
+  const orgName = searchParams.get("org")
+  const email = searchParams.get("email")
   const [showConfetti, setShowConfetti] = useState(false)
 
   useEffect(() => {
@@ -19,6 +21,8 @@ export default function ExitoPage() {
   }, [])
 
   const isNewClub = type === "nuevo-club"
+  const isInvitation = type === "invitation"
+  const isPending = type === "pending"
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4 relative overflow-hidden">
@@ -60,11 +64,21 @@ export default function ExitoPage() {
               )}
             </div>
             <CardTitle className="text-3xl">
-              {isNewClub ? "¡Club creado exitosamente!" : "¡Solicitud enviada!"}
+              {isNewClub 
+                ? "¡Club creado exitosamente!" 
+                : isInvitation 
+                ? "¡Solicitud enviada!" 
+                : isPending 
+                ? "¡Cuenta creada!" 
+                : "¡Solicitud enviada!"}
             </CardTitle>
             <CardDescription className="text-base mt-2">
               {isNewClub
                 ? "Tu club ha sido registrado correctamente en ClubOS"
+                : isInvitation && orgName
+                ? `Tu solicitud de acceso a ${decodeURIComponent(orgName)} ha sido enviada al administrador`
+                : isPending && email
+                ? `Verifica tu email (${decodeURIComponent(email)}) para completar tu solicitud de acceso`
                 : "Tu solicitud ha sido enviada al administrador del club"}
             </CardDescription>
           </CardHeader>
@@ -97,18 +111,18 @@ export default function ExitoPage() {
                   </Link>
                 </div>
               </>
-            ) : (
+            ) : isPending ? (
               <>
-                <div className="bg-muted/50 rounded-lg p-6 space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 space-y-4">
                   <div className="flex items-start gap-3">
-                    <Clock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <Clock className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div className="text-left">
-                      <h3 className="font-semibold mb-1">¿Qué sigue?</h3>
-                      <ul className="text-sm text-muted-foreground space-y-2">
-                        <li>• El administrador del club revisará tu solicitud</li>
-                        <li>• Recibirás un email cuando sea aprobada</li>
-                        <li>• Podrás acceder al sistema con tus credenciales</li>
-                        <li>• Mientras tanto, revisa tu email de confirmación</li>
+                      <h3 className="font-semibold mb-1 text-blue-800">Verifica tu email</h3>
+                      <ul className="text-sm text-blue-700 space-y-2">
+                        <li>• Revisa tu bandeja de entrada en {email && decodeURIComponent(email)}</li>
+                        <li>• Haz clic en el enlace de verificación</li>
+                        <li>• Una vez verificado, completa tu solicitud de acceso al club</li>
+                        <li>• Si no ves el email, revisa tu carpeta de spam</li>
                       </ul>
                     </div>
                   </div>
@@ -116,14 +130,41 @@ export default function ExitoPage() {
 
                 <div className="space-y-3">
                   <Link href="/login">
-                    <Button className="w-full h-11 text-base font-medium">Volver al inicio de sesión</Button>
+                    <Button className="w-full h-11 text-base font-medium">Ya verifiqué mi email</Button>
                   </Link>
-                  <p className="text-sm text-muted-foreground">
-                    ¿Tienes preguntas?{" "}
-                    <button className="text-primary hover:text-primary/80 font-medium transition-colors">
-                      Contacta con soporte
-                    </button>
-                  </p>
+                  <Link href="/registro/unirse">
+                    <Button variant="outline" className="w-full h-11 text-base font-medium bg-transparent">
+                      Intentar nuevamente
+                    </Button>
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-muted/50 rounded-lg p-6 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div className="text-left">
+                      <h3 className="font-semibold mb-1">¿Qué sigue ahora?</h3>
+                      <ul className="text-sm text-muted-foreground space-y-2">
+                        <li>• El administrador del club revisará tu solicitud</li>
+                        <li>• Recibirás una notificación cuando sea aprobada</li>
+                        <li>• Una vez aprobada, tendrás acceso completo a {orgName ? decodeURIComponent(orgName) : 'la organización'}</li>
+                        <li>• El proceso normalmente toma entre 24-48 horas</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Link href="/login">
+                    <Button className="w-full h-11 text-base font-medium">Iniciar sesión</Button>
+                  </Link>
+                  <Link href="/">
+                    <Button variant="outline" className="w-full h-11 text-base font-medium bg-transparent">
+                      Volver al inicio
+                    </Button>
+                  </Link>
                 </div>
               </>
             )}

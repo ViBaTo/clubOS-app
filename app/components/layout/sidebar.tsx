@@ -52,7 +52,6 @@ const MaterialIcon = ({
 )
 
 export function Sidebar() {
-  const [isOpen, setIsOpen] = useState(false)
   const [expandedItems, setExpandedItems] = useState<string[]>(['Productos'])
   const pathname = usePathname()
 
@@ -164,32 +163,8 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile menu button */}
-      <Button
-        variant='ghost'
-        size='icon'
-        className='fixed top-4 left-4 z-50 md:hidden text-[#1E40AF] hover:bg-[#1E40AF]/5 font-medium rounded-lg transition-all duration-150'
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <MaterialIcon name={isOpen ? 'close' : 'menu'} className='text-xl' />
-      </Button>
-
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div
-          className='fixed inset-0 bg-black/50 z-40 md:hidden'
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          'fixed left-0 top-0 z-40 h-full w-64 bg-sidebar border-r border-sidebar-border transition-transform duration-300 ease-in-out',
-          'md:translate-x-0 md:static md:z-0',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        )}
-      >
+      {/* Sidebar - Desktop Only */}
+      <aside className='hidden md:block w-64 bg-sidebar border-r border-sidebar-border'>
         {sidebarContent}
       </aside>
     </>

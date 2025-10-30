@@ -13,6 +13,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { ProductEditorModal } from '@/app/components/products/product-editor-modal'
+import { BottomNav } from '@/components/layout/BottomNav'
 
 interface AcademyProgram {
   id: string
@@ -80,7 +81,7 @@ export default function AcademiaPage() {
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Navbar />
 
-        <main className='flex-1 overflow-y-auto p-8'>
+        <main className='flex-1 overflow-y-auto p-8 pb-20 md:pb-8'>
           <div className='space-y-6'>
             {/* Page header */}
             <div className='flex items-center justify-between'>
@@ -169,6 +170,7 @@ export default function AcademiaPage() {
             />
           </div>
         </main>
+        <BottomNav />
       </div>
     </div>
   )

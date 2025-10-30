@@ -199,7 +199,7 @@ export function MembersDirectory() {
 
         {error && <div className='text-sm text-red-600'>{error}</div>}
 
-        <Card>
+        <Card className='hidden md:block'>
           <CardHeader className='p-0'>
             <CardTitle className='text-xl font-semibold text-[#0F172A] leading-snug'>
               Directorio de Clientes ({loading ? '...' : filteredMembers.length}
@@ -293,8 +293,15 @@ export function MembersDirectory() {
           </CardContent>
         </Card>
 
-        <div className='md:hidden space-y-6'>
-          {filteredMembers.map((member) => (
+        {/* Mobile Cards */}
+        <div className='md:hidden'>
+          <div className='mb-4'>
+            <h2 className='text-xl font-semibold text-[#0F172A] leading-snug'>
+              Directorio de Clientes ({loading ? '...' : filteredMembers.length})
+            </h2>
+          </div>
+          <div className='space-y-4'>
+            {filteredMembers.map((member) => (
             <Card key={`mobile-${member.id}`}>
               <CardContent className='p-0'>
                 <div className='flex items-start justify-between'>
@@ -346,7 +353,8 @@ export function MembersDirectory() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
