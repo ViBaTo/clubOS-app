@@ -189,7 +189,7 @@ export default function NotificationsPage() {
       }
       
       if (!invitationId) {
-        setMessage({ text: "ID de invitación no encontrado", type: "error" })
+        setMessage({ text: "Invitation ID not found", type: "error" })
         setTimeout(() => setMessage(null), 5000)
         return
       }
@@ -203,10 +203,10 @@ export default function NotificationsPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al aprobar')
+        throw new Error(data.error || 'Error approving request')
       }
 
-      setMessage({ text: "Solicitud aprobada. Usuario notificado por email.", type: "success" })
+      setMessage({ text: "Request approved. User notified by email.", type: "success" })
       setTimeout(() => setMessage(null), 5000)
       
       // Mark notification as read
@@ -223,7 +223,7 @@ export default function NotificationsPage() {
       
     } catch (error: any) {
       console.error('Error:', error)
-      setMessage({ text: error.message || "Error en la operación", type: "error" })
+      setMessage({ text: error.message || "Operation failed", type: "error" })
       setTimeout(() => setMessage(null), 5000)
     } finally {
       setApprovingId(null)
@@ -248,7 +248,7 @@ export default function NotificationsPage() {
       }
       
       if (!invitationId) {
-        setMessage({ text: "ID de invitación no encontrado", type: "error" })
+        setMessage({ text: "Invitation ID not found", type: "error" })
         setTimeout(() => setMessage(null), 5000)
         return
       }
@@ -258,17 +258,17 @@ export default function NotificationsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           invitationId,
-          reason: 'Rechazado por el administrador'
+          reason: 'Rejected by administrator'
         })
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al rechazar')
+        throw new Error(data.error || 'Error rejecting request')
       }
 
-      setMessage({ text: "Solicitud rechazada.", type: "success" })
+      setMessage({ text: "Request rejected.", type: "success" })
       setTimeout(() => setMessage(null), 5000)
       
       // Mark notification as read
@@ -285,7 +285,7 @@ export default function NotificationsPage() {
       
     } catch (error: any) {
       console.error('Error:', error)
-      setMessage({ text: error.message || "Error en la operación", type: "error" })
+      setMessage({ text: error.message || "Operation failed", type: "error" })
       setTimeout(() => setMessage(null), 5000)
     } finally {
       setRejectingId(null)
@@ -303,7 +303,7 @@ export default function NotificationsPage() {
     const now = new Date()
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
-    if (diffInSeconds < 60) return 'Ahora'
+    if (diffInSeconds < 60) return 'Now'
     
     const diffInMinutes = Math.floor(diffInSeconds / 60)
     if (diffInMinutes < 60) return `${diffInMinutes}m`
@@ -314,7 +314,7 @@ export default function NotificationsPage() {
     const diffInDays = Math.floor(diffInHours / 24)
     if (diffInDays < 7) return `${diffInDays}d`
     
-    return date.toLocaleDateString('es-ES', { 
+    return date.toLocaleDateString('en-US', { 
       day: 'numeric', 
       month: 'short',
       year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
@@ -342,11 +342,11 @@ export default function NotificationsPage() {
   // Get type label
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      join_request: 'Solicitud de acceso',
-      invitation_approved: 'Invitación aprobada',
-      invitation_rejected: 'Invitación rechazada',
-      payment_received: 'Pago recibido',
-      system: 'Sistema'
+      join_request: 'Access Request',
+      invitation_approved: 'Invitation Approved',
+      invitation_rejected: 'Invitation Rejected',
+      payment_received: 'Payment Received',
+      system: 'System'
     }
     return labels[type] || type
   }
@@ -404,12 +404,12 @@ export default function NotificationsPage() {
                     {approvingId === notification.id ? (
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Aprobando...
+                        Approving...
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
                         <MaterialIcon name="check" className="text-sm" />
-                        Aprobar
+                        Approve
                       </div>
                     )}
                   </Button>
@@ -423,25 +423,25 @@ export default function NotificationsPage() {
                     {rejectingId === notification.id ? (
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Rechazando...
+                        Rejecting...
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
                         <MaterialIcon name="close" className="text-sm" />
-                        Rechazar
+                        Reject
                       </div>
                     )}
                   </Button>
 
                   <Button
-                    onClick={() => router.push('/configuracion/solicitudes-acceso')}
+                    onClick={() => router.push('/settings/access-requests')}
                     variant="outline"
                     className="px-4 py-2 text-sm font-medium h-8"
                     size="sm"
                   >
                     <div className="flex items-center gap-2">
                       <MaterialIcon name="arrow_forward" className="text-sm" />
-                      Ver detalles
+                      View Details
                     </div>
                   </Button>
                 </div>
@@ -457,7 +457,7 @@ export default function NotificationsPage() {
                   onClick={() => toggleReadStatus(notification.id, isUnread)}
                   className="text-xs h-6 px-2"
                 >
-                  {isUnread ? 'Marcar como leída' : 'Marcar como no leída'}
+                  {isUnread ? 'Mark as read' : 'Mark as unread'}
                 </Button>
               </div>
             </div>
@@ -506,16 +506,16 @@ export default function NotificationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Notificaciones</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Notifications</h1>
           <p className="text-muted-foreground">
-            Gestiona todas tus notificaciones
+            Manage all your notifications
           </p>
         </div>
         
         {unreadCount > 0 && (
           <Button onClick={markAllAsRead} variant="outline">
             <MaterialIcon name="mark_email_read" className="mr-2 text-lg" />
-            Marcar todas como leídas
+            Mark all as read
           </Button>
         )}
       </div>
@@ -543,7 +543,7 @@ export default function NotificationsPage() {
                 <MaterialIcon name="mark_email_unread" className="text-blue-500 text-lg" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Sin leer</p>
+                <p className="text-sm text-muted-foreground">Unread</p>
                 <p className="text-xl font-semibold">{unreadCount}</p>
               </div>
             </div>
@@ -557,7 +557,7 @@ export default function NotificationsPage() {
                 <MaterialIcon name="mark_email_read" className="text-green-500 text-lg" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Leídas</p>
+                <p className="text-sm text-muted-foreground">Read</p>
                 <p className="text-xl font-semibold">{notifications.length - unreadCount}</p>
               </div>
             </div>
@@ -571,7 +571,7 @@ export default function NotificationsPage() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Buscar notificaciones..."
+                placeholder="Search notifications..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
@@ -580,26 +580,26 @@ export default function NotificationsPage() {
             
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Tipo" />
+                <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los tipos</SelectItem>
-                <SelectItem value="join_request">Solicitudes de acceso</SelectItem>
-                <SelectItem value="invitation_approved">Invitaciones aprobadas</SelectItem>
-                <SelectItem value="invitation_rejected">Invitaciones rechazadas</SelectItem>
-                <SelectItem value="payment_received">Pagos recibidos</SelectItem>
-                <SelectItem value="system">Sistema</SelectItem>
+                <SelectItem value="all">All types</SelectItem>
+                <SelectItem value="join_request">Access Requests</SelectItem>
+                <SelectItem value="invitation_approved">Invitations Approved</SelectItem>
+                <SelectItem value="invitation_rejected">Invitations Rejected</SelectItem>
+                <SelectItem value="payment_received">Payments Received</SelectItem>
+                <SelectItem value="system">System</SelectItem>
               </SelectContent>
             </Select>
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full md:w-32">
-                <SelectValue placeholder="Estado" />
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="unread">Sin leer</SelectItem>
-                <SelectItem value="read">Leídas</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="unread">Unread</SelectItem>
+                <SelectItem value="read">Read</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -618,14 +618,14 @@ export default function NotificationsPage() {
               <MaterialIcon name="notifications_off" className="text-4xl text-muted-foreground/50 mb-4" />
               <h3 className="font-medium text-lg mb-2">
                 {searchQuery || typeFilter !== 'all' || statusFilter !== 'all' 
-                  ? 'No se encontraron notificaciones' 
-                  : 'No hay notificaciones'
+                  ? 'No notifications found' 
+                  : 'No notifications'
                 }
               </h3>
               <p className="text-muted-foreground">
                 {searchQuery || typeFilter !== 'all' || statusFilter !== 'all'
-                  ? 'Intenta ajustar los filtros de búsqueda'
-                  : 'Las notificaciones aparecerán aquí cuando las recibas'
+                  ? 'Try adjusting your search filters'
+                  : 'Notifications will appear here when you receive them'
                 }
               </p>
             </CardContent>
@@ -642,7 +642,7 @@ export default function NotificationsPage() {
         <div className="text-center">
           <Button variant="outline" onClick={loadNotifications}>
             <MaterialIcon name="refresh" className="mr-2 text-lg" />
-            Cargar más notificaciones
+            Load more notifications
           </Button>
         </div>
       )}

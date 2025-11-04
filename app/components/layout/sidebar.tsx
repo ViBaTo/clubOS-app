@@ -13,6 +13,11 @@ const menuItems = [
     icon: 'group'
   },
   {
+    title: 'Equipo',
+    href: '/settings/team',
+    icon: 'diversity_3'
+  },
+  {
     title: 'Productos',
     icon: 'expand_more',
     submenu: [

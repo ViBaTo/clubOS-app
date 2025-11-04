@@ -2,7 +2,8 @@
 
 import type React from 'react'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -34,6 +35,7 @@ import {
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const searchParams = useSearchParams()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [resetOpen, setResetOpen] = useState(false)
@@ -44,6 +46,34 @@ export default function LoginPage() {
     password: '',
     rememberMe: false
   })
+
+  // Handle auth callback errors
+  useEffect(() => {
+    const error = searchParams.get('error')
+    if (error) {
+      let errorMessage = 'Authentication failed'
+      
+      switch (error) {
+        case 'missing_code':
+          errorMessage = 'Invalid invitation link'
+          break
+        case 'session_failed':
+          errorMessage = 'Failed to create session. Please try again.'
+          break
+        case 'callback_failed':
+          errorMessage = 'Authentication callback failed. Please try again.'
+          break
+        default:
+          errorMessage = decodeURIComponent(error)
+      }
+
+      toast({
+        title: 'Authentication Error',
+        description: errorMessage,
+        variant: 'destructive'
+      })
+    }
+  }, [searchParams, toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

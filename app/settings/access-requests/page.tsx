@@ -44,7 +44,7 @@ import type {
   Invitation
 } from '@/app/types/notifications'
 
-export default function SolicitudesAccesoPage() {
+export default function AccessRequestsPage() {
   const { user, loading } = useCurrentUser()
   const router = useRouter()
   const { toast } = useToast()
@@ -112,15 +112,17 @@ export default function SolicitudesAccesoPage() {
         setTotalCount(data.totalCount || 0)
       } else {
         toast({
-          title: 'Error al cargar solicitudes',
-          description: 'No se pudieron cargar las solicitudes pendientes'
+          title: 'Error loading requests',
+          description: 'Could not load pending requests',
+          variant: 'destructive'
         })
       }
     } catch (error) {
       console.error('Failed to load invitations:', error)
       toast({
-        title: 'Error de conexión',
-        description: 'No se pudo conectar con el servidor'
+        title: 'Connection error',
+        description: 'Could not connect to server',
+        variant: 'destructive'
       })
     } finally {
       setIsLoading(false)
@@ -164,7 +166,7 @@ export default function SolicitudesAccesoPage() {
 
       if (response.ok) {
         toast({
-          title: '¡Solicitud aprobada!',
+          title: 'Request approved!',
           description: result.message
         })
         
@@ -177,15 +179,17 @@ export default function SolicitudesAccesoPage() {
         }
       } else {
         toast({
-          title: 'Error al aprobar',
-          description: result.message || 'No se pudo aprobar la solicitud'
+          title: 'Error approving',
+          description: result.message || 'Could not approve request',
+          variant: 'destructive'
         })
       }
     } catch (error) {
       console.error('Failed to approve invitation:', error)
       toast({
-        title: 'Error de conexión',
-        description: 'No se pudo procesar la solicitud'
+        title: 'Connection error',
+        description: 'Could not process request',
+        variant: 'destructive'
       })
     } finally {
       setActionLoading(null)
@@ -209,7 +213,7 @@ export default function SolicitudesAccesoPage() {
 
       if (response.ok) {
         toast({
-          title: 'Solicitud rechazada',
+          title: 'Request rejected',
           description: result.message
         })
         
@@ -222,15 +226,17 @@ export default function SolicitudesAccesoPage() {
         }
       } else {
         toast({
-          title: 'Error al rechazar',
-          description: result.message || 'No se pudo rechazar la solicitud'
+          title: 'Error rejecting',
+          description: result.message || 'Could not reject request',
+          variant: 'destructive'
         })
       }
     } catch (error) {
       console.error('Failed to reject invitation:', error)
       toast({
-        title: 'Error de conexión',
-        description: 'No se pudo procesar la solicitud'
+        title: 'Connection error',
+        description: 'Could not process request',
+        variant: 'destructive'
       })
     } finally {
       setActionLoading(null)
@@ -240,7 +246,7 @@ export default function SolicitudesAccesoPage() {
   // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -255,14 +261,14 @@ export default function SolicitudesAccesoPage() {
       return (
         <Badge variant="secondary" className="bg-red-100 text-red-800">
           <AlertTriangle className="w-3 h-3 mr-1" />
-          Expirado
+          Expired
         </Badge>
       )
     }
     return (
       <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
         <Clock className="w-3 h-3 mr-1" />
-        Pendiente
+        Pending
       </Badge>
     )
   }
@@ -284,10 +290,10 @@ export default function SolicitudesAccesoPage() {
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-2xl font-bold text-foreground">
-          Solicitudes de Acceso
+          Access Requests
         </h1>
         <p className="text-muted-foreground">
-          Gestiona las solicitudes pendientes de acceso al club
+          Manage pending access requests to your club
         </p>
       </div>
 
@@ -295,20 +301,20 @@ export default function SolicitudesAccesoPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pendientes</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pending</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[#14B8A6]">{totalCount}</div>
             <p className="text-xs text-muted-foreground">
-              Solicitudes esperando revisión
+              Requests awaiting review
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Este Mes</CardTitle>
+            <CardTitle className="text-sm font-medium">This Month</CardTitle>
             <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -318,14 +324,14 @@ export default function SolicitudesAccesoPage() {
               ).length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Solicitudes recibidas
+              Requests received
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Expiradas</CardTitle>
+            <CardTitle className="text-sm font-medium">Expired</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -333,7 +339,7 @@ export default function SolicitudesAccesoPage() {
               {invitations.filter(inv => inv.isExpired).length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Requieren atención
+              Require attention
             </p>
           </CardContent>
         </Card>
@@ -344,9 +350,9 @@ export default function SolicitudesAccesoPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <CardTitle className="text-lg">Solicitudes Pendientes</CardTitle>
+              <CardTitle className="text-lg">Pending Requests</CardTitle>
               <CardDescription>
-                {filteredInvitations.length} de {invitations.length} solicitudes
+                {filteredInvitations.length} of {invitations.length} requests
               </CardDescription>
             </div>
             <Button onClick={loadInvitations} variant="outline" size="sm">
@@ -355,7 +361,7 @@ export default function SolicitudesAccesoPage() {
               ) : (
                 <Filter className="h-4 w-4 mr-2" />
               )}
-              Actualizar
+              Refresh
             </Button>
           </div>
         </CardHeader>
@@ -365,7 +371,7 @@ export default function SolicitudesAccesoPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por email, nombre o rol..."
+                placeholder="Search by email, name or role..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -377,18 +383,18 @@ export default function SolicitudesAccesoPage() {
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-[#14B8A6]" />
-              <span className="ml-2 text-muted-foreground">Cargando solicitudes...</span>
+              <span className="ml-2 text-muted-foreground">Loading requests...</span>
             </div>
           ) : filteredInvitations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {invitations.length === 0 ? (
                 <div className="space-y-2">
                   <Building className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                  <p className="text-lg font-medium">No hay solicitudes pendientes</p>
-                  <p className="text-sm">Las nuevas solicitudes aparecerán aquí</p>
+                  <p className="text-lg font-medium">No pending requests</p>
+                  <p className="text-sm">New requests will appear here</p>
                 </div>
               ) : (
-                <p>No se encontraron solicitudes que coincidan con la búsqueda</p>
+                <p>No requests found matching your search</p>
               )}
             </div>
           ) : (
@@ -396,11 +402,11 @@ export default function SolicitudesAccesoPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Solicitante</TableHead>
-                    <TableHead>Rol</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead>Applicant</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -458,10 +464,7 @@ export default function SolicitudesAccesoPage() {
                             variant="ghost"
                             size="sm"
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => {
-                              setSelectedInvitation(invitation)
-                              setShowRejectModal(true)
-                            }}
+                            onClick={() => setSelectedInvitation(invitation)}
                             disabled={actionLoading === invitation.id}
                           >
                             <X className="h-4 w-4" />
