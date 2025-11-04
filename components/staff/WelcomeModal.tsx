@@ -286,6 +286,7 @@ export function WelcomeModal({
   ])
 
   const handleNext = () => {
+    // If we're on the password setup step and password hasn't been saved, block
     if (requiresPasswordSetup && currentStep === 0 && !passwordSaved) {
       setPasswordError('Please create your password before continuing')
       return
@@ -294,7 +295,10 @@ export function WelcomeModal({
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
-      onOpenChange(false)
+      // Only close if we're not on a password step or password was saved
+      if (!requiresPasswordSetup || passwordSaved) {
+        onOpenChange(false)
+      }
     }
   }
 
@@ -315,9 +319,32 @@ export function WelcomeModal({
     }
   }, [open])
 
+  // Block closing if password is required and not yet saved
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && requiresPasswordSetup && !passwordSaved) {
+      // Don't allow closing
+      return
+    }
+    onOpenChange(newOpen)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent
+        className="sm:max-w-lg"
+        onEscapeKeyDown={(e) => {
+          // Prevent closing with ESC if password is required
+          if (requiresPasswordSetup && !passwordSaved) {
+            e.preventDefault()
+          }
+        }}
+        onPointerDownOutside={(e) => {
+          // Prevent closing by clicking outside if password is required
+          if (requiresPasswordSetup && !passwordSaved) {
+            e.preventDefault()
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-center">
             {steps[currentStep].title}

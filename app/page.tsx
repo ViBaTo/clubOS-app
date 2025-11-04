@@ -3,25 +3,8 @@
 import { Sidebar } from "@/app/components/layout/sidebar"
 import { Navbar } from "@/app/components/layout/navbar"
 import { BottomNav } from "@/components/layout/BottomNav"
-import { WelcomeModal } from "@/components/staff/WelcomeModal"
-import { useNewStaffWelcome } from "@/hooks/useNewStaffWelcome"
 
 export default function Home() {
-  const {
-    shouldShowWelcome,
-    staffInfo,
-    markWelcomeCompleted,
-    requiresPasswordSetup,
-    submitPassword
-  } = useNewStaffWelcome()
-
-  const handleWelcomeClose = async () => {
-    try {
-      await markWelcomeCompleted()
-    } catch (error) {
-      console.error('Failed to complete welcome flow:', error)
-    }
-  }
   return (
     <div className="flex h-screen bg-[#F1F5F9]">
       <Sidebar />
@@ -105,22 +88,6 @@ export default function Home() {
         </main>
         <BottomNav />
       </div>
-
-      {/* Welcome Modal for new staff members */}
-      {shouldShowWelcome && staffInfo && (
-        <WelcomeModal
-          open={shouldShowWelcome}
-          onOpenChange={handleWelcomeClose}
-          userInfo={{
-            name: staffInfo.full_name,
-            role: staffInfo.role,
-            organizationName: staffInfo.organization_name,
-            specialties: staffInfo.specialties
-          }}
-          requiresPasswordSetup={requiresPasswordSetup}
-          onPasswordSubmit={submitPassword}
-        />
-      )}
     </div>
   )
 }

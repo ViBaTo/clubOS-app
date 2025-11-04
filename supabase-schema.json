@@ -1,0 +1,264 @@
+{
+  "tables": {
+    "email_logs": {
+      "description": "Logs all emails sent by the system for auditing and debugging",
+      "fields": [
+        "id",
+        "organization_id",
+        "recipient_email",
+        "email_type",
+        "subject",
+        "status",
+        "error_message",
+        "invitation_id",
+        "metadata",
+        "sent_at",
+        "created_at"
+      ]
+    },
+    "payments": {
+      "description": "Tabla simplificada de pagos conectada con product_sales",
+      "fields": [
+        "id",
+        "organization_id",
+        "client_id",
+        "product_sale_id",
+        "amount",
+        "payment_method",
+        "payment_date",
+        "notes",
+        "created_at",
+        "receipt_url"
+      ]
+    },
+    "organization_users_view": {
+      "description": "Vista mejorada de usuarios de organización con información legible de usuarios relacionados (inviter, staff) y estados descriptivos",
+      "fields": [
+        "org_user_id",
+        "organization_id",
+        "user_id",
+        "role",
+        "is_primary",
+        "joined_via",
+        "invitation_id",
+        "staff_id",
+        "permissions",
+        "joined_at",
+        "updated_at",
+        "organization_name",
+        "organization_slug",
+        "club_type",
+        "organization_status",
+        "user_email",
+        "email_confirmed_at",
+        "user_phone",
+        "phone_confirmed_at",
+        "user_created_at",
+        "user_updated_at",
+        "last_sign_in_at",
+        "confirmed_at",
+        "email_change",
+        "email_change_sent_at",
+        "phone_change",
+        "phone_change_sent_at",
+        "is_super_admin",
+        "is_sso_user",
+        "is_anonymous",
+        "deleted_at",
+        "banned_until",
+        "raw_user_meta_data",
+        "raw_app_meta_data",
+        "user_full_name",
+        "user_first_name",
+        "user_last_name",
+        "user_avatar_url",
+        "auth_provider",
+        "invitation_email",
+        "invitation_status",
+        "invitation_expires_at",
+        "invitation_accepted_at",
+        "invitation_invited_by_id",
+        "invited_by_email",
+        "invited_by_name",
+        "staff_full_name",
+        "staff_email",
+        "staff_role",
+        "staff_status",
+        "joined_via_invitation",
+        "is_admin",
+        "email_confirmed",
+        "phone_confirmed",
+        "account_confirmed",
+        "days_since_last_login",
+        "user_status",
+        "account_status",
+        "status_description"
+      ]
+    },
+    "client_management": {
+      "description": "Vista de gestión de clientes",
+      "fields": [
+        "id",
+        "full_name",
+        "document_id",
+        "phone",
+        "email",
+        "status",
+        "registration_date",
+        "organization_id",
+        "last_activity",
+        "category_name",
+        "active_products_count",
+        "classes_available",
+        "pending_payments_total"
+      ]
+    },
+    "club_settings": {
+      "description": "CORE: Club configuration",
+      "fields": [
+        "organization_id",
+        "settings",
+        "pricing",
+        "updated_at"
+      ]
+    },
+    "club_staff": {
+      "description": "Tabla de staff del club",
+      "fields": [
+        "id",
+        "organization_id",
+        "email",
+        "full_name",
+        "phone",
+        "role",
+        "specialties",
+        "status",
+        "invited_at",
+        "activated_at",
+        "added_by",
+        "user_id",
+        "first_login_completed",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    "organization_summary_view": {
+      "description": "Statistical summary of users and invitations per organization",
+      "fields": [
+        "organization_id",
+        "organization_name",
+        "organization_slug",
+        "club_type",
+        "organization_status",
+        "organization_created_at",
+        "total_users",
+        "owners_count",
+        "admins_count",
+        "staff_count",
+        "members_count",
+        "viewers_count",
+        "total_invitations",
+        "pending_invitations",
+        "accepted_invitations",
+        "expired_invitations",
+        "users_via_invitation",
+        "new_users_last_30d",
+        "last_user_joined",
+        "last_invitation_sent"
+      ]
+    },
+    "client_active_products": {
+      "description": "Vista de productos activos de clientes",
+      "fields": [
+        "client_id",
+        "client_name",
+        "product_name",
+        "product_type",
+        "status",
+        "classes_total",
+        "classes_remaining",
+        "expiry_date",
+        "purchase_date",
+        "organization_id"
+      ]
+    },
+    "client_package_summary": {
+      "description": "Resumen de paquetes de clientes",
+      "fields": [
+        "client_id",
+        "client_name",
+        "phone",
+        "email",
+        "last_class_date",
+        "total_packages",
+        "active_packages",
+        "total_classes_remaining",
+        "total_classes_used",
+        "organization_id"
+      ]
+    },
+    "product_sales": {
+      "description": "CORE: Purchase history",
+      "fields": [
+        "id",
+        "organization_id",
+        "client_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "total_price",
+        "discount",
+        "status",
+        "expiry_date",
+        "classes_remaining",
+        "classes_total",
+        "notes",
+        "metadata",
+        "created_at",
+        "updated_at",
+        "last_payment_date",
+        "payment_status"
+      ]
+    },
+    "class_usage_history": {
+      "description": "Historial de uso de clases",
+      "fields": [
+        "id",
+        "usage_date",
+        "client_name",
+        "package_name",
+        "classes_used",
+        "description",
+        "instructor",
+        "facility_name",
+        "notes",
+        "remaining_after_use",
+        "organization_id"
+      ]
+    },
+    "clients": {
+      "description": "CORE: Client/member management - Removed redundant id_organizacion field, using organization_id (UUID) only",
+      "fields": [
+        "id",
+        "full_name",
+        "document_id",
+        "phone",
+        "email",
+        "status",
+        "registration_date",
+        "categoria_id",
+        "communications_consent",
+        "consent_date",
+        "deletion_request",
+        "data_anonymized",
+        "created_at",
+        "updated_at",
+        "pending_balance",
+        "last_class_date",
+        "internal_notes",
+        "organization_id",
+        "id_organizacion"
+      ]
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "supabase-VIBATO": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "sbp_633962f90aa0bc3ff87493fb5cb84f552f9ad440",
+        "--project-ref",
+        "adnjclqgwsngetimldeu"
+      ]
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {}
+    },
+    "Figma Desktop": {
+      "url": "http://127.0.0.1:3845/mcp"
+    }
+  }
+}
