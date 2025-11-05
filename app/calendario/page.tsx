@@ -82,6 +82,10 @@ export default function CalendarPage() {
     setView({ ...view, fecha: newDate })
   }
 
+  const handleMonthChange = (date: Date) => {
+    setView((prev) => ({ ...prev, fecha: date }))
+  }
+
   const handleToday = () => {
     setView({ ...view, fecha: new Date() })
   }
@@ -169,7 +173,7 @@ export default function CalendarPage() {
 
     switch (view.tipo) {
       case "month":
-        return <EnhancedMonthView {...commonProps} onDateClick={handleDateClick} />
+        return <EnhancedMonthView {...commonProps} onDateClick={handleDateClick} onMonthChange={handleMonthChange} />
       case "week":
         return <WeekView {...commonProps} onTimeSlotClick={handleTimeSlotClick} />
       case "day":
