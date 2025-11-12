@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { OnboardingLayout } from "@/components/layout/OnboardingLayout"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,7 +34,9 @@ export default function RootLayout({
       </head>
       <body className={`font-sans ${inter.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          {children}
+          <OnboardingLayout>
+            {children}
+          </OnboardingLayout>
           <Toaster />
         </ThemeProvider>
       </body>

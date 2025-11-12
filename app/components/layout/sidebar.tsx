@@ -13,6 +13,11 @@ const menuItems = [
     icon: 'group'
   },
   {
+    title: 'Calendario',
+    href: '/calendario',
+    icon: 'calendar_month'
+  },
+  {
     title: 'Equipo',
     href: '/settings/team',
     icon: 'diversity_3'

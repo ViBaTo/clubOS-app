@@ -68,7 +68,15 @@ export async function GET(request: NextRequest) {
     const code = url.searchParams.get('code')
     const error = url.searchParams.get('error')
     const errorDescription = url.searchParams.get('error_description')
+    const type = url.searchParams.get('type')
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+    console.log('Auth callback received:', {
+      hasCode: !!code,
+      hasError: !!error,
+      type,
+      url: request.url
+    })
 
     // Handle error from Supabase
     if (error) {
@@ -79,7 +87,11 @@ export async function GET(request: NextRequest) {
 
     // Handle missing code
     if (!code) {
-      return NextResponse.redirect(`${appUrl}/login?error=missing_code`)
+      console.error('Missing auth code in callback', {
+        searchParams: Object.fromEntries(url.searchParams),
+        hash: url.hash
+      })
+      return NextResponse.redirect(`${appUrl}/login?error=missing_code&details=check_invitation_expiry`)
     }
 
     // Create Supabase client
@@ -90,10 +102,25 @@ export async function GET(request: NextRequest) {
 
     // Exchange code for session
     const { data: { session, user }, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
-    
+
     if (sessionError || !session || !user) {
-      console.error('Failed to exchange code for session:', sessionError)
-      return NextResponse.redirect(`${appUrl}/login?error=session_failed`)
+      console.error('Failed to exchange code for session:', {
+        error: sessionError,
+        hasSession: !!session,
+        hasUser: !!user,
+        errorMessage: sessionError?.message,
+        errorStatus: sessionError?.status
+      })
+
+      // Provide more specific error message
+      let errorMsg = 'session_failed'
+      if (sessionError?.message?.includes('expired')) {
+        errorMsg = 'invitation_expired'
+      } else if (sessionError?.message?.includes('used')) {
+        errorMsg = 'invitation_already_used'
+      }
+
+      return NextResponse.redirect(`${appUrl}/login?error=${errorMsg}&message=Please request a new invitation`)
     }
 
     // Check if this is a staff invitation by looking at user metadata
