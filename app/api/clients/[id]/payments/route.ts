@@ -1,90 +1,53 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseRouteClientWithAuth } from '@/app/lib/supabaseServer'
 
-export async function POST(
-  request: Request,
+// Mock payments data
+const mockPayments = [
+  { id: 'pay-1', date: '2024-01-15', amount: 350, description: 'Bono 10 Clases', method: 'card', status: 'completed' },
+  { id: 'pay-2', date: '2024-01-01', amount: 75, description: 'Academia Mensual', method: 'transfer', status: 'completed' },
+  { id: 'pay-3', date: '2023-12-15', amount: 45, description: 'Clase Suelta', method: 'cash', status: 'completed' },
+  { id: 'pay-4', date: '2023-12-01', amount: 75, description: 'Academia Mensual', method: 'card', status: 'completed' },
+]
+
+export async function GET(
+  _request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = getSupabaseRouteClientWithAuth(request)
-    const {
-      data: { user }
-    } = await supabase.auth.getUser()
-    if (!user)
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    const { id: clientId } = await context.params
-    const body = await request.json().catch(() => ({}))
-    const { sale_id, amount, payment_method, receipt_url } = body || {}
-
-    if (!clientId || !sale_id)
-      return NextResponse.json(
-        { error: 'sale_id es obligatorio' },
-        { status: 400 }
-      )
-
-    // Verify sale belongs to client
-    const { data: sale, error: saleErr } = await supabase
-      .from('product_sales')
-      .select('id, client_id, organization_id, total_price')
-      .eq('id', sale_id)
-      .eq('client_id', clientId)
-      .maybeSingle()
-
-    if (saleErr || !sale)
-      return NextResponse.json(
-        { error: 'Venta no encontrada para este cliente' },
-        { status: 404 }
-      )
-
-    // Ensure a payment row exists and optionally set receipt_url
-    const { data: existingPayment } = await supabase
-      .from('payments')
-      .select('id')
-      .eq('product_sale_id', sale_id)
-      .maybeSingle()
-
-    let paymentId: string | null = existingPayment?.id ?? null
-    if (!paymentId) {
-      const { data: createdPayment } = await supabase
-        .from('payments')
-        .insert({
-          organization_id: sale.organization_id,
-          client_id: clientId,
-          product_sale_id: sale_id,
-          amount: amount ?? sale.total_price ?? 0,
-          payment_method: payment_method ?? 'cash'
-        })
-        .select('id')
-        .single()
-      paymentId = createdPayment?.id ?? null
-    }
-
-    if (paymentId && receipt_url) {
-      await supabase
-        .from('payments')
-        .update({ receipt_url })
-        .eq('id', paymentId)
-    }
-
-    const { data: updated, error: updateErr } = await supabase
-      .from('product_sales')
-      .update({
-        payment_status: 'paid',
-        last_payment_date: new Date().toISOString()
-      })
-      .eq('id', sale_id)
-      .select('id, payment_status, last_payment_date')
-      .single()
-
-    if (updateErr)
-      return NextResponse.json({ error: updateErr.message }, { status: 400 })
-
-    return NextResponse.json({ sale: updated, payment_id: paymentId })
+    const { id } = await context.params
+    
+    return NextResponse.json({
+      payments: mockPayments,
+      summary: {
+        total_paid: mockPayments.reduce((sum, p) => sum + p.amount, 0),
+        count: mockPayments.length,
+      }
+    })
   } catch (e: any) {
-    return NextResponse.json(
-      { error: e.message || 'Unexpected error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: e.message || 'Unexpected error' }, { status: 500 })
+  }
+}
+
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await context.params
+    const body = await request.json()
+    const { amount, description, method = 'cash' } = body || {}
+
+    if (!amount) {
+      return NextResponse.json({ error: 'amount is required' }, { status: 400 })
+    }
+
+    const newPayment = {
+      id: `pay-${Date.now()}`,
+      date: new Date().toISOString().split('T')[0],
+      amount,
+      description: description || 'Pago',
+      method,
+      status: 'completed'
+    }
+
+    return NextResponse.json({ payment: newPayment }, { status: 201 })
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message || 'Unexpected error' }, { status: 500 })
   }
 }

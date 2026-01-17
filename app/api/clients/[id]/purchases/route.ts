@@ -1,38 +1,69 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseRouteClientWithAuth } from '@/app/lib/supabaseServer'
+
+// Mock purchases data
+const mockPurchases = [
+  { 
+    id: 'pur-1', 
+    product_name: 'Bono 10 Clases', 
+    purchase_date: '2024-01-15',
+    price: 350,
+    classes_remaining: 7,
+    classes_total: 10,
+    expires_at: '2024-04-15',
+    status: 'active'
+  },
+  { 
+    id: 'pur-2', 
+    product_name: 'Academia Adultos', 
+    purchase_date: '2024-01-01',
+    price: 90,
+    classes_remaining: 4,
+    classes_total: 8,
+    expires_at: '2024-01-31',
+    status: 'active'
+  },
+]
 
 export async function GET(
-  request: Request,
+  _request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = getSupabaseRouteClientWithAuth(request)
-    const {
-      data: { user }
-    } = await supabase.auth.getUser()
-    if (!user)
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
     const { id } = await context.params
-
-    const { data, error } = await supabase
-      .from('product_sales')
-      .select(
-        `id, client_id, product_id, organization_id, quantity, unit_price, total_price, discount, status, payment_status, classes_total, classes_remaining, expiry_date, created_at, updated_at,
-        products ( name, product_type ),
-        payments ( id, receipt_url, amount, payment_date, payment_method )`
-      )
-      .eq('client_id', id)
-      .order('created_at', { ascending: false })
-
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 400 })
-
-    return NextResponse.json({ purchases: data ?? [] })
+    
+    return NextResponse.json({ purchases: mockPurchases })
   } catch (e: any) {
-    return NextResponse.json(
-      { error: e.message || 'Unexpected error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: e.message || 'Unexpected error' }, { status: 500 })
+  }
+}
+
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await context.params
+    const body = await request.json()
+    const { product_id, product_name, price, classes_included, duration_days } = body || {}
+
+    if (!product_id) {
+      return NextResponse.json({ error: 'product_id is required' }, { status: 400 })
+    }
+
+    const expiresAt = duration_days 
+      ? new Date(Date.now() + duration_days * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      : null
+
+    const newPurchase = {
+      id: `pur-${Date.now()}`,
+      product_name: product_name || 'Producto',
+      purchase_date: new Date().toISOString().split('T')[0],
+      price: price || 0,
+      classes_remaining: classes_included || 0,
+      classes_total: classes_included || 0,
+      expires_at: expiresAt,
+      status: 'active'
+    }
+
+    return NextResponse.json({ purchase: newPurchase }, { status: 201 })
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message || 'Unexpected error' }, { status: 500 })
   }
 }
