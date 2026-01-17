@@ -1,22 +1,32 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState } from "react"
-import { cn } from "@/lib/utils"
-import type { CalendarEvent } from "@/src/types/calendar"
-import { getDaysInMonth, getStartOfWeek, isSameDay, getEventsForDate } from "@/src/utils/calendar-helpers"
-import { useDragDrop } from "@/src/hooks/use-drag-drop"
-import { DragDropOverlay } from "./drag-drop-overlay"
-import { DropZoneIndicator } from "./drop-zone-indicator"
-import { GhostEvent } from "./ghost-event"
+import { useState } from 'react'
+import { cn } from '@/lib/utils'
+import type { CalendarEvent } from '@/src/types/calendar'
+import {
+  getDaysInMonth,
+  getStartOfWeek,
+  getEndOfWeek,
+  isSameDay,
+  getEventsForDate
+} from '@/src/utils/calendar-helpers'
+import { useDragDrop } from '@/src/hooks/use-drag-drop'
+import { DragDropOverlay } from './drag-drop-overlay'
+import { DropZoneIndicator } from './drop-zone-indicator'
+import { GhostEvent } from './ghost-event'
 
 interface EnhancedMonthViewProps {
   currentDate: Date
   events: CalendarEvent[]
   onEventClick: (event: CalendarEvent) => void
   onDateClick: (date: Date) => void
-  onEventMove: (event: CalendarEvent, newDate: Date, newHour?: string) => Promise<boolean>
+  onEventMove: (
+    event: CalendarEvent,
+    newDate: Date,
+    newHour?: string
+  ) => Promise<boolean>
 }
 
 export function EnhancedMonthView({
@@ -24,33 +34,38 @@ export function EnhancedMonthView({
   events,
   onEventClick,
   onDateClick,
-  onEventMove,
+  onEventMove
 }: EnhancedMonthViewProps) {
   const [showConfirmation, setShowConfirmation] = useState(false)
-  const { dragState, startDrag, endDrag, updateDropZone, executeDrop } = useDragDrop({
-    events,
-    onEventMove,
-  })
+  const { dragState, startDrag, endDrag, updateDropZone, executeDrop } =
+    useDragDrop({
+      events,
+      onEventMove
+    })
 
   const today = new Date()
   const daysInMonth = getDaysInMonth(currentDate)
   const firstDayOfMonth = daysInMonth[0]
   const startOfCalendar = getStartOfWeek(firstDayOfMonth)
+  const lastDayOfMonth = daysInMonth[daysInMonth.length - 1]
+  const endOfCalendar = getEndOfWeek(lastDayOfMonth)
 
   // Generate calendar grid (6 weeks)
   const calendarDays: Date[] = []
   const current = new Date(startOfCalendar)
 
-  for (let i = 0; i < 42; i++) {
+  while (current <= endOfCalendar) {
     calendarDays.push(new Date(current))
     current.setDate(current.getDate() + 1)
   }
 
-  const weekDays = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+  const totalWeeks = Math.ceil(calendarDays.length / 7)
+
+  const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
   const handleDragStart = (event: CalendarEvent, e: React.DragEvent) => {
-    e.dataTransfer.effectAllowed = "move"
-    e.dataTransfer.setData("text/plain", event.id)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', event.id)
     startDrag(event)
   }
 
@@ -61,7 +76,7 @@ export function EnhancedMonthView({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
-    e.dataTransfer.dropEffect = "move"
+    e.dataTransfer.dropEffect = 'move'
   }
 
   const handleDragEnter = (date: Date, e: React.DragEvent) => {
@@ -83,7 +98,7 @@ export function EnhancedMonthView({
     setShowConfirmation(false)
     if (!success) {
       // Handle error - could show toast notification
-      console.error("Failed to move event")
+      console.error('Failed to move event')
     }
   }
 
@@ -94,73 +109,80 @@ export function EnhancedMonthView({
 
   return (
     <>
-      <div className="flex-1 bg-white">
+      <div className='flex h-full min-h-0 flex-1 flex-col bg-white'>
         {/* Header with weekdays */}
-        <div className="grid grid-cols-7 border-b border-[#E5E7EB]">
+        <div className='grid grid-cols-7 border-b border-[#E5E7EB]'>
           {weekDays.map((day) => (
-            <div key={day} className="p-4 text-center text-sm font-medium text-[#6B7280] bg-[#F9FAFB]">
+            <div
+              key={day}
+              className='p-4 text-center text-sm font-medium text-[#6B7280] bg-[#F9FAFB]'
+            >
               {day}
             </div>
           ))}
         </div>
 
         {/* Calendar grid */}
-        <div className="grid grid-cols-7 flex-1">
+        <div
+          className='grid flex-1 min-h-0 grid-cols-7'
+          style={{ gridTemplateRows: `repeat(${totalWeeks}, minmax(0, 1fr))` }}
+        >
           {calendarDays.map((date, index) => {
             const dayEvents = getEventsForDate(events, date)
             const isToday = isSameDay(date, today)
             const isCurrentMonth = date.getMonth() === currentDate.getMonth()
             const isWeekend = date.getDay() === 0 || date.getDay() === 6
 
-            const isDropZone = dragState.dropZone && isSameDay(dragState.dropZone.date, date)
+            const isDropZone =
+              dragState.dropZone && isSameDay(dragState.dropZone.date, date)
             const isValidDropZone = isDropZone && dragState.dropZone?.isValid
 
             return (
               <div
                 key={index}
                 className={cn(
-                  "relative min-h-[120px] border-r border-b border-[#E5E7EB] p-2 cursor-pointer transition-colors hover:bg-[#F9FAFB]",
-                  !isCurrentMonth && "bg-[#F9FAFB]/50 text-[#9CA3AF]",
-                  isWeekend && "bg-[#F8FAFC]",
-                  dragState.isDragging && "transition-all duration-200",
+                  'relative flex min-h-0 flex-col border-r border-b border-[#E5E7EB] p-2 cursor-pointer transition-colors hover:bg-[#F9FAFB]',
+                  !isCurrentMonth && 'bg-[#F9FAFB]/50 text-[#9CA3AF]',
+                  isWeekend && 'bg-[#F8FAFC]',
+                  dragState.isDragging && 'transition-all duration-200'
                 )}
                 onClick={() => onDateClick(date)}
                 onDragOver={handleDragOver}
                 onDragEnter={(e) => handleDragEnter(date, e)}
                 onDrop={(e) => handleDrop(date, e)}
               >
-                <div className="flex items-center justify-between mb-2">
+                <div className='flex items-center justify-between mb-2'>
                   <span
                     className={cn(
-                      "text-sm font-medium",
+                      'text-sm font-medium',
                       isToday &&
-                        "bg-[#1E40AF] text-white rounded-full w-6 h-6 flex items-center justify-center text-xs",
-                      !isCurrentMonth && "text-[#9CA3AF]",
-                      isCurrentMonth && !isToday && "text-[#374151]",
+                        'bg-[#1E40AF] text-white rounded-full w-6 h-6 flex items-center justify-center text-xs',
+                      !isCurrentMonth && 'text-[#9CA3AF]',
+                      isCurrentMonth && !isToday && 'text-[#374151]'
                     )}
                   >
                     {date.getDate()}
                   </span>
 
                   {dayEvents.length > 3 && (
-                    <span className="text-xs text-[#6B7280] bg-[#F3F4F6] px-2 py-1 rounded-full">
+                    <span className='text-xs text-[#6B7280] bg-[#F3F4F6] px-2 py-1 rounded-full'>
                       +{dayEvents.length - 3}
                     </span>
                   )}
                 </div>
 
-                <div className="space-y-1 relative">
+                <div className='relative flex-1 space-y-1 overflow-hidden'>
                   {dayEvents.slice(0, 3).map((event) => (
                     <div
                       key={event.id}
                       className={cn(
-                        "text-xs p-1.5 rounded-md cursor-pointer transition-all hover:shadow-sm",
-                        dragState.draggedEvent?.id === event.id && "opacity-30",
+                        'text-xs p-1.5 rounded-md cursor-pointer transition-all hover:shadow-sm',
+                        dragState.draggedEvent?.id === event.id && 'opacity-30'
                       )}
                       style={{
                         backgroundColor: `${event.color}15`,
                         borderLeft: `3px solid ${event.color}`,
-                        color: event.color,
+                        color: event.color
                       }}
                       onClick={(e) => {
                         e.stopPropagation()
@@ -170,21 +192,30 @@ export function EnhancedMonthView({
                       onDragStart={(e) => handleDragStart(event, e)}
                       onDragEnd={handleDragEnd}
                     >
-                      <div className="font-medium truncate">{event.titulo}</div>
-                      <div className="text-[#6B7280] truncate">
-                        {new Date(event.fechaInicio).toLocaleTimeString("es-ES", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: false,
-                        })}
+                      <div className='font-medium truncate'>{event.titulo}</div>
+                      <div className='text-[#6B7280] truncate'>
+                        {new Date(event.fechaInicio).toLocaleTimeString(
+                          'es-ES',
+                          {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          }
+                        )}
                       </div>
                     </div>
                   ))}
 
                   {/* Ghost event for drag preview */}
-                  {dragState.isDragging && isDropZone && dragState.draggedEvent && (
-                    <GhostEvent event={dragState.draggedEvent} newDate={date} isValid={isValidDropZone || false} />
-                  )}
+                  {dragState.isDragging &&
+                    isDropZone &&
+                    dragState.draggedEvent && (
+                      <GhostEvent
+                        event={dragState.draggedEvent}
+                        newDate={date}
+                        isValid={isValidDropZone || false}
+                      />
+                    )}
                 </div>
 
                 {/* Drop zone indicator */}

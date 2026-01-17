@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Sidebar } from "@/app/components/layout/sidebar"
 import { Navbar } from "@/app/components/layout/navbar"
 import { CalendarToolbar } from "@/src/components/calendar/calendar-toolbar"
-import { QuickFilters } from "@/src/components/calendar/quick-filters"
 import { ActiveFiltersBar } from "@/src/components/calendar/active-filters-bar"
 import { CalendarFilters } from "@/src/components/calendar/calendar-filters"
 import { SearchSuggestions } from "@/src/components/calendar/search-suggestions"
@@ -37,7 +36,6 @@ export default function CalendarPage() {
     filter,
     searchTerm,
     filteredEvents,
-    eventCounts,
     showSuggestions,
     hasActiveFilters,
     activeFiltersCount,
@@ -198,7 +196,7 @@ export default function CalendarPage() {
               searchTerm={searchTerm}
               onSearchChange={handleSearchChange}
               activeFilters={activeFiltersCount}
-              onFiltersClick={() => setShowFilters(!showFilters)}
+              onFiltersClick={() => setShowFilters((prev) => !prev)}
             />
 
             {/* Search Suggestions */}
@@ -217,12 +215,9 @@ export default function CalendarPage() {
               onFilterChange={handleFilterChange}
               onClearFilters={clearFilters}
               isOpen={showFilters}
-              onToggle={() => setShowFilters(!showFilters)}
+              onToggle={setShowFilters}
             />
           </div>
-
-          {/* Quick Filters */}
-          <QuickFilters filter={filter} onFilterChange={handleFilterChange} eventCounts={eventCounts} />
 
           {/* Active Filters Bar */}
           {hasActiveFilters && (

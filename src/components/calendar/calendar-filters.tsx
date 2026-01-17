@@ -4,9 +4,8 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import type { CalendarFilter } from "@/src/types/calendar"
@@ -21,7 +20,7 @@ interface CalendarFiltersProps {
   onFilterChange: (filter: CalendarFilter) => void
   onClearFilters: () => void
   isOpen: boolean
-  onToggle: () => void
+  onToggle: (open: boolean) => void
 }
 
 export function CalendarFilters({ filter, onFilterChange, onClearFilters, isOpen, onToggle }: CalendarFiltersProps) {
@@ -32,7 +31,7 @@ export function CalendarFilters({ filter, onFilterChange, onClearFilters, isOpen
 
   const handleApplyFilters = () => {
     onFilterChange(tempFilter)
-    onToggle()
+    onToggle(false)
   }
 
   const handleResetFilters = () => {
@@ -45,17 +44,7 @@ export function CalendarFilters({ filter, onFilterChange, onClearFilters, isOpen
     }
     setTempFilter(resetFilter)
     onFilterChange(resetFilter)
-  }
-
-  const getActiveFiltersCount = () => {
-    return (
-      tempFilter.instructores.length +
-      tempFilter.tiposClase.length +
-      tempFilter.pistas.length +
-      tempFilter.estados.length +
-      (tempFilter.fechaInicio ? 1 : 0) +
-      (tempFilter.fechaFin ? 1 : 0)
-    )
+    onClearFilters()
   }
 
   const toggleArrayFilter = (key: keyof CalendarFilter, value: string) => {
@@ -72,24 +61,9 @@ export function CalendarFilters({ filter, onFilterChange, onClearFilters, isOpen
 
   return (
     <Popover open={isOpen} onOpenChange={onToggle}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            "h-8 px-3 text-sm font-medium hover:bg-[#F3F4F6]",
-            getActiveFiltersCount() > 0 ? "text-[#1E40AF] bg-[#1E40AF]/5" : "text-[#6B7280]",
-          )}
-        >
-          <MaterialIcon name="filter_list" className="text-lg mr-1" />
-          Filtros
-          {getActiveFiltersCount() > 0 && (
-            <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs bg-[#1E40AF] text-white">
-              {getActiveFiltersCount()}
-            </Badge>
-          )}
-        </Button>
-      </PopoverTrigger>
+      <PopoverAnchor asChild>
+        <span className="absolute right-6 top-4 h-0 w-0" aria-hidden="true" />
+      </PopoverAnchor>
 
       <PopoverContent className="w-80 p-0" align="end">
         <div className="p-4 border-b border-[#E5E7EB]">
@@ -251,7 +225,7 @@ export function CalendarFilters({ filter, onFilterChange, onClearFilters, isOpen
 
         <div className="p-4 border-t border-[#E5E7EB] bg-[#F9FAFB]">
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={onToggle} className="flex-1 bg-transparent">
+            <Button variant="outline" size="sm" onClick={() => onToggle(false)} className="flex-1 bg-transparent">
               Cancelar
             </Button>
             <Button size="sm" onClick={handleApplyFilters} className="flex-1 bg-[#1E40AF] hover:bg-[#1D4ED8]">
