@@ -80,69 +80,93 @@ export const mockCourts: Court[] = [
 export const mockClients: Client[] = [
   {
     id: "1",
-    nombre: "Carlos Rodríguez García",
-    email: "carlos.rodriguez@email.com",
-    telefono: "+34 612 345 678",
+    nombre: "Carlos Jiménez",
+    email: "carlos.jimenez@clubos.com",
+    telefono: "+34 611 234 567",
     avatar: "/client-carlos.jpg",
   },
   {
     id: "2",
-    nombre: "Laura Martínez",
-    email: "laura.martinez@email.com",
-    telefono: "+34 623 456 789",
+    nombre: "María Fernández",
+    email: "maria.fernandez@clubos.com",
+    telefono: "+34 622 345 678",
     avatar: "/client-laura.jpg",
   },
   {
     id: "3",
-    nombre: "Miguel Fernández",
-    email: "miguel.fernandez@email.com",
-    telefono: "+34 634 567 890",
-    avatar: "/client-miguel.jpg",
+    nombre: "Roberto García",
+    email: "roberto.garcia@clubos.com",
+    telefono: "+34 633 456 789",
+    avatar: "/client-roberto.jpg",
   },
   {
     id: "4",
-    nombre: "Elena Sánchez",
-    email: "elena.sanchez@email.com",
-    telefono: "+34 645 678 901",
+    nombre: "Elena Martínez",
+    email: "elena.martinez@clubos.com",
+    telefono: "+34 644 567 890",
     avatar: "/client-elena.jpg",
   },
   {
     id: "5",
-    nombre: "Roberto Silva",
-    email: "roberto.silva@email.com",
-    telefono: "+34 656 789 012",
-    avatar: "/client-roberto.jpg",
+    nombre: "Miguel López",
+    email: "miguel.lopez@clubos.com",
+    telefono: "+34 655 678 901",
+    avatar: "/client-miguel.jpg",
   },
 ]
 
-// Generate realistic calendar events for the current week and next few weeks
-const generateCalendarEvents = (): CalendarEvent[] => {
-  const events: CalendarEvent[] = []
-  const today = new Date()
-  const startDate = new Date(today)
-  startDate.setDate(today.getDate() - 7) // Start from a week ago
-
-  const colors = {
-    "Clase particular": "#1E40AF", // Blue
-    Grupal: "#059669", // Green
-    Academia: "#7C3AED", // Purple
+const createSeededRandom = (seed: number) => {
+  let state = seed % 2147483647
+  if (state <= 0) {
+    state += 2147483646
   }
 
-  // Generate events for 3 weeks
+  return () => {
+    state = (state * 16807) % 2147483647
+    return (state - 1) / 2147483646
+  }
+}
+
+const seededRandom = createSeededRandom(123456789)
+
+const randomInt = (min: number, max: number) => Math.floor(seededRandom() * (max - min + 1)) + min
+const randomBool = (probability = 0.5) => seededRandom() < probability
+const randomChoice = <T,>(items: T[]): T => items[Math.floor(seededRandom() * items.length)]
+
+const pickRandomClients = (count: number) => {
+  const pool = [...mockClients]
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(seededRandom() * (i + 1))
+    ;[pool[i], pool[j]] = [pool[j], pool[i]]
+  }
+  return pool.slice(0, count)
+}
+
+const BASE_DATE = new Date("2024-05-01T00:00:00")
+
+function generateCalendarEvents(): CalendarEvent[] {
+  const events: CalendarEvent[] = []
+  const startDate = new Date(BASE_DATE)
+  startDate.setDate(BASE_DATE.getDate() - 7)
+
+  const colors = {
+    "Clase particular": "#1E40AF",
+    Grupal: "#059669",
+    Academia: "#7C3AED",
+  }
+
   for (let day = 0; day < 21; day++) {
     const currentDate = new Date(startDate)
     currentDate.setDate(startDate.getDate() + day)
 
-    // Skip Sundays for most activities
     if (currentDate.getDay() === 0) continue
 
-    // Generate 3-8 events per day
-    const eventsPerDay = Math.floor(Math.random() * 6) + 3
+    const eventsPerDay = randomInt(3, 8)
 
     for (let i = 0; i < eventsPerDay; i++) {
-      const startHour = Math.floor(Math.random() * 12) + 8 // 8 AM to 8 PM
-      const startMinute = Math.random() < 0.5 ? 0 : 30
-      const duration = Math.random() < 0.7 ? 90 : 60 // 60 or 90 minutes
+      const startHour = randomInt(8, 19)
+      const startMinute = randomBool(0.5) ? 0 : 30
+      const duration = randomBool(0.7) ? 90 : 60
 
       const fechaInicio = new Date(currentDate)
       fechaInicio.setHours(startHour, startMinute, 0, 0)
@@ -150,21 +174,25 @@ const generateCalendarEvents = (): CalendarEvent[] => {
       const fechaFin = new Date(fechaInicio)
       fechaFin.setMinutes(fechaInicio.getMinutes() + duration)
 
-      const tipoClase = ["Clase particular", "Grupal", "Academia"][Math.floor(Math.random() * 3)] as any
-      const instructor = mockInstructors[Math.floor(Math.random() * mockInstructors.length)]
-      const pista = mockCourts[Math.floor(Math.random() * mockCourts.length)]
-      const estado = Math.random() < 0.85 ? "Confirmada" : Math.random() < 0.5 ? "Pendiente" : "Cancelada"
+      const tipoClase = randomChoice(["Clase particular", "Grupal", "Academia"]) as CalendarEvent["tipoClase"]
+      const instructor = randomChoice(mockInstructors)
+      const pista = randomChoice(mockCourts)
+      const estado = randomBool(0.85)
+        ? "Confirmada"
+        : randomBool(0.5)
+          ? "Pendiente"
+          : "Cancelada"
 
       let cliente: Client | undefined
       let clientes: Client[] | undefined
       let titulo: string
 
       if (tipoClase === "Clase particular") {
-        cliente = mockClients[Math.floor(Math.random() * mockClients.length)]
+        cliente = randomChoice(mockClients)
         titulo = `Clase particular - ${cliente.nombre}`
       } else if (tipoClase === "Grupal") {
-        const numClientes = Math.floor(Math.random() * 3) + 2 // 2-4 clients
-        clientes = mockClients.slice(0, numClientes)
+        const numClientes = randomInt(2, 4)
+        clientes = pickRandomClients(numClientes)
         titulo = `Clase grupal (${numClientes} alumnos)`
       } else {
         titulo = "Clase de Academia"
@@ -177,14 +205,14 @@ const generateCalendarEvents = (): CalendarEvent[] => {
         fechaInicio: fechaInicio.toISOString(),
         fechaFin: fechaFin.toISOString(),
         tipoClase,
-        estado: estado as any,
+        estado: estado as CalendarEvent["estado"],
         instructor,
         cliente,
         clientes,
         pista,
         precio: tipoClase === "Clase particular" ? 45 : tipoClase === "Grupal" ? 25 : 20,
         color: colors[tipoClase],
-        notas: Math.random() < 0.3 ? "Clase de prueba" : undefined,
+        notas: randomBool(0.3) ? "Clase de prueba" : undefined,
       })
     }
   }

@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import type { CalendarFilter } from "@/src/types/calendar"
@@ -20,18 +21,159 @@ interface CalendarFiltersProps {
   onFilterChange: (filter: CalendarFilter) => void
   onClearFilters: () => void
   isOpen: boolean
-  onToggle: (open: boolean) => void
+  onToggle: () => void
+  eventCounts: {
+    today: number
+    thisWeek: number
+    pending: number
+    confirmed: number
+    courts: Record<string, number>
+  }
 }
 
-export function CalendarFilters({ filter, onFilterChange, onClearFilters, isOpen, onToggle }: CalendarFiltersProps) {
+interface QuickFilterOption {
+  id: string
+  label: string
+  icon: string
+  count: number
+  filter: CalendarFilter
+}
+
+export function CalendarFilters({
+  filter,
+  onFilterChange,
+  onClearFilters,
+  isOpen,
+  onToggle,
+  eventCounts,
+}: CalendarFiltersProps) {
   const [tempFilter, setTempFilter] = useState<CalendarFilter>(filter)
+  const [showQuickFilters, setShowQuickFilters] = useState(false)
 
   const tiposClase = ["Clase particular", "Grupal", "Academia"]
   const estados = ["Confirmada", "Pendiente", "Cancelada", "Completada"]
 
+  useEffect(() => {
+    if (isOpen) {
+      setTempFilter(filter)
+    }
+  }, [filter, isOpen])
+
+  useEffect(() => {
+    if (!isOpen) {
+      setShowQuickFilters(false)
+    }
+  }, [isOpen])
+
+  const formatDate = (date: Date) => date.toISOString().split("T")[0]
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayStr = formatDate(today)
+
+  const startOfWeek = new Date(today)
+  const day = startOfWeek.getDay()
+  const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1)
+  startOfWeek.setDate(diff)
+  startOfWeek.setHours(0, 0, 0, 0)
+  const startOfWeekStr = formatDate(startOfWeek)
+
+  const endOfWeek = new Date(startOfWeek)
+  endOfWeek.setDate(startOfWeek.getDate() + 6)
+  endOfWeek.setHours(23, 59, 59, 999)
+  const endOfWeekStr = formatDate(endOfWeek)
+
+  const topCourts = mockCourts
+    .map((court) => ({
+      ...court,
+      count: eventCounts.courts[court.id] || 0,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
+
+  const quickFilters: QuickFilterOption[] = [
+    {
+      id: "today",
+      label: "Hoy",
+      icon: "today",
+      count: eventCounts.today,
+      filter: {
+        ...filter,
+        fechaInicio: todayStr,
+        fechaFin: todayStr,
+      },
+    },
+    {
+      id: "week",
+      label: "Esta semana",
+      icon: "date_range",
+      count: eventCounts.thisWeek,
+      filter: {
+        ...filter,
+        fechaInicio: startOfWeekStr,
+        fechaFin: endOfWeekStr,
+      },
+    },
+    {
+      id: "pending",
+      label: "Pendientes",
+      icon: "schedule",
+      count: eventCounts.pending,
+      filter: {
+        ...filter,
+        estados: ["Pendiente"],
+      },
+    },
+    {
+      id: "confirmed",
+      label: "Confirmadas",
+      icon: "check_circle",
+      count: eventCounts.confirmed,
+      filter: {
+        ...filter,
+        estados: ["Confirmada"],
+      },
+    },
+    ...topCourts.map((court) => ({
+      id: `court-${court.id}`,
+      label: court.nombre,
+      icon: "sports_tennis",
+      count: court.count,
+      filter: {
+        ...filter,
+        pistas: [court.id],
+      },
+    })),
+  ]
+
+  const isQuickFilterActive = (quickFilter: QuickFilterOption) => {
+    if (quickFilter.id === "today") {
+      return filter.fechaInicio === todayStr && filter.fechaFin === todayStr
+    }
+    if (quickFilter.id === "week") {
+      return filter.fechaInicio === startOfWeekStr && filter.fechaFin === endOfWeekStr
+    }
+    if (quickFilter.id === "pending") {
+      return filter.estados.length === 1 && filter.estados.includes("Pendiente")
+    }
+    if (quickFilter.id === "confirmed") {
+      return filter.estados.length === 1 && filter.estados.includes("Confirmada")
+    }
+    if (quickFilter.id.startsWith("court-")) {
+      const courtId = quickFilter.id.replace("court-", "")
+      return filter.pistas.length === 1 && filter.pistas.includes(courtId)
+    }
+    return false
+  }
+
+  const handleQuickFilterClick = (quickFilter: QuickFilterOption) => {
+    setTempFilter(quickFilter.filter)
+    onFilterChange(quickFilter.filter)
+  }
+
   const handleApplyFilters = () => {
     onFilterChange(tempFilter)
-    onToggle(false)
+    onToggle()
   }
 
   const handleResetFilters = () => {
@@ -43,8 +185,18 @@ export function CalendarFilters({ filter, onFilterChange, onClearFilters, isOpen
       busqueda: "",
     }
     setTempFilter(resetFilter)
-    onFilterChange(resetFilter)
     onClearFilters()
+  }
+
+  const getActiveFiltersCount = () => {
+    return (
+      tempFilter.instructores.length +
+      tempFilter.tiposClase.length +
+      tempFilter.pistas.length +
+      tempFilter.estados.length +
+      (tempFilter.fechaInicio ? 1 : 0) +
+      (tempFilter.fechaFin ? 1 : 0)
+    )
   }
 
   const toggleArrayFilter = (key: keyof CalendarFilter, value: string) => {
@@ -61,9 +213,24 @@ export function CalendarFilters({ filter, onFilterChange, onClearFilters, isOpen
 
   return (
     <Popover open={isOpen} onOpenChange={onToggle}>
-      <PopoverAnchor asChild>
-        <span className="absolute right-6 top-4 h-0 w-0" aria-hidden="true" />
-      </PopoverAnchor>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            "h-8 px-3 text-sm font-medium hover:bg-[#F3F4F6]",
+            getActiveFiltersCount() > 0 ? "text-[#1E40AF] bg-[#1E40AF]/5" : "text-[#6B7280]",
+          )}
+        >
+          <MaterialIcon name="filter_list" className="text-lg mr-1" />
+          Filtros
+          {getActiveFiltersCount() > 0 && (
+            <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs bg-[#1E40AF] text-white">
+              {getActiveFiltersCount()}
+            </Badge>
+          )}
+        </Button>
+      </PopoverTrigger>
 
       <PopoverContent className="w-80 p-0" align="end">
         <div className="p-4 border-b border-[#E5E7EB]">
@@ -79,6 +246,55 @@ export function CalendarFilters({ filter, onFilterChange, onClearFilters, isOpen
               Limpiar
             </Button>
           </div>
+        </div>
+
+        <div className="border-b border-[#E5E7EB]">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowQuickFilters((prev) => !prev)}
+            className="w-full justify-between rounded-none bg-transparent hover:bg-[#F3F4F6]"
+          >
+            <span className="flex items-center text-sm font-medium text-[#0F172A]">
+              <MaterialIcon name="bolt" className="text-lg text-[#1E40AF] mr-2" />
+              Filtros rápidos
+            </span>
+            <MaterialIcon name={showQuickFilters ? "expand_less" : "expand_more"} className="text-lg text-[#6B7280]" />
+          </Button>
+
+          {showQuickFilters && (
+            <div className="p-4 pt-0 flex flex-wrap gap-2">
+              {quickFilters.map((quickFilter) => {
+                const isActive = isQuickFilterActive(quickFilter)
+                return (
+                  <Button
+                    key={quickFilter.id}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleQuickFilterClick(quickFilter)}
+                    className={cn(
+                      "h-8 px-3 text-sm font-medium transition-all whitespace-nowrap",
+                      isActive
+                        ? "bg-[#1E40AF] text-white hover:bg-[#1D4ED8]"
+                        : "text-[#6B7280] hover:text-[#374151] hover:bg-white",
+                    )}
+                  >
+                    <MaterialIcon name={quickFilter.icon} className="text-lg mr-1" />
+                    {quickFilter.label}
+                    <Badge
+                      variant="secondary"
+                      className={cn(
+                        "ml-2 h-5 px-1.5 text-xs",
+                        isActive ? "bg-white/20 text-white" : "bg-[#E5E7EB] text-[#6B7280]",
+                      )}
+                    >
+                      {quickFilter.count}
+                    </Badge>
+                  </Button>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         <div className="max-h-96 overflow-y-auto">
@@ -225,7 +441,7 @@ export function CalendarFilters({ filter, onFilterChange, onClearFilters, isOpen
 
         <div className="p-4 border-t border-[#E5E7EB] bg-[#F9FAFB]">
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => onToggle(false)} className="flex-1 bg-transparent">
+            <Button variant="outline" size="sm" onClick={onToggle} className="flex-1 bg-transparent">
               Cancelar
             </Button>
             <Button size="sm" onClick={handleApplyFilters} className="flex-1 bg-[#1E40AF] hover:bg-[#1D4ED8]">
