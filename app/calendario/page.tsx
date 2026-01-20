@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Sidebar } from "@/app/components/layout/sidebar"
 import { Navbar } from "@/app/components/layout/navbar"
 import { CalendarToolbar } from "@/src/components/calendar/calendar-toolbar"
@@ -17,6 +17,10 @@ import { toast } from "@/hooks/use-toast"
 import type { CalendarView, CalendarEvent } from "@/src/types/calendar"
 import { mockCalendarEvents } from "@/src/data/calendar-mock"
 import { useCalendarSearch } from "@/src/hooks/use-calendar-search"
+import { useCalendarEvents } from "@/src/hooks/use-calendar-events"
+
+// Set to true to use real API data, false to use mock data
+const USE_REAL_API = process.env.NEXT_PUBLIC_USE_REAL_CALENDAR_API === 'true'
 
 const MaterialIcon = ({ name, className = "" }: { name: string; className?: string }) => (
   <span className={`material-symbols-outlined ${className}`}>{name}</span>
@@ -30,12 +34,57 @@ export default function CalendarPage() {
 
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [showFilters, setShowFilters] = useState(false)
-  const [events, setEvents] = useState(mockCalendarEvents)
+  const [localEvents, setLocalEvents] = useState(mockCalendarEvents)
+
+  // Calculate date range for API fetch based on current view
+  const dateRange = useMemo(() => {
+    const start = new Date(view.fecha)
+    const end = new Date(view.fecha)
+    
+    if (view.tipo === 'month') {
+      start.setDate(1)
+      start.setMonth(start.getMonth() - 1) // Include previous month for overlap
+      end.setMonth(end.getMonth() + 2)
+      end.setDate(0)
+    } else if (view.tipo === 'week') {
+      const day = start.getDay()
+      start.setDate(start.getDate() - day)
+      end.setDate(end.getDate() + (6 - day) + 7)
+    } else {
+      start.setDate(start.getDate() - 1)
+      end.setDate(end.getDate() + 1)
+    }
+
+    return {
+      startDate: start.toISOString(),
+      endDate: end.toISOString()
+    }
+  }, [view.fecha, view.tipo])
+
+  // Use the real API hook
+  const { 
+    events: apiEvents, 
+    loading: apiLoading, 
+    error: apiError,
+    moveEvent: apiMoveEvent,
+    refetch: refetchEvents
+  } = useCalendarEvents({
+    startDate: dateRange.startDate,
+    endDate: dateRange.endDate,
+    autoFetch: USE_REAL_API
+  })
+
+  // Use either API events or local mock events
+  const events = USE_REAL_API ? apiEvents : localEvents
+  const setEvents = USE_REAL_API 
+    ? () => { /* API handles state */ } 
+    : setLocalEvents
 
   const {
     filter,
     searchTerm,
     filteredEvents,
+    eventCounts,
     showSuggestions,
     hasActiveFilters,
     activeFiltersCount,
@@ -104,49 +153,60 @@ export default function CalendarPage() {
 
   const handleEventMove = async (event: CalendarEvent, newDate: Date, newHour?: string): Promise<boolean> => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      const originalStartDate = new Date(event.fechaInicio)
+      const newStartDate = new Date(newDate)
 
-      // Update event in local state
-      const updatedEvents = events.map((e) => {
-        if (e.id === event.id) {
-          const originalStartDate = new Date(e.fechaInicio)
-          const newStartDate = new Date(newDate)
+      if (newHour) {
+        const [hourNum, minuteNum] = newHour.split(":").map(Number)
+        newStartDate.setHours(hourNum, minuteNum, 0, 0)
+      } else {
+        newStartDate.setHours(
+          originalStartDate.getHours(),
+          originalStartDate.getMinutes(),
+          originalStartDate.getSeconds(),
+          originalStartDate.getMilliseconds(),
+        )
+      }
 
-          if (newHour) {
-            // If specific hour is provided, use it
-            const [hourNum, minuteNum] = newHour.split(":").map(Number)
-            newStartDate.setHours(hourNum, minuteNum, 0, 0)
-          } else {
-            // If no specific hour, preserve the original time
-            newStartDate.setHours(
-              originalStartDate.getHours(),
-              originalStartDate.getMinutes(),
-              originalStartDate.getSeconds(),
-              originalStartDate.getMilliseconds(),
-            )
-          }
+      const originalDuration = new Date(event.fechaFin).getTime() - new Date(event.fechaInicio).getTime()
+      const newEndDate = new Date(newStartDate.getTime() + originalDuration)
 
-          const originalDuration = new Date(e.fechaFin).getTime() - new Date(e.fechaInicio).getTime()
-          const newEndDate = new Date(newStartDate.getTime() + originalDuration)
-
-          return {
-            ...e,
-            fechaInicio: newStartDate.toISOString(),
-            fechaFin: newEndDate.toISOString(),
-          }
+      if (USE_REAL_API) {
+        // Use API to move event
+        const success = await apiMoveEvent(event.id, newStartDate.toISOString(), newEndDate.toISOString())
+        if (success) {
+          toast({
+            title: "Clase movida",
+            description: `${event.titulo} ha sido reprogramada correctamente.`,
+          })
+          return true
+        } else {
+          throw new Error('Failed to move event')
         }
-        return e
-      })
+      } else {
+        // Update local mock state
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        
+        const updatedEvents = localEvents.map((e) => {
+          if (e.id === event.id) {
+            return {
+              ...e,
+              fechaInicio: newStartDate.toISOString(),
+              fechaFin: newEndDate.toISOString(),
+            }
+          }
+          return e
+        })
 
-      setEvents(updatedEvents)
+        setLocalEvents(updatedEvents)
 
-      toast({
-        title: "Clase movida",
-        description: `${event.titulo} ha sido reprogramada correctamente.`,
-      })
+        toast({
+          title: "Clase movida",
+          description: `${event.titulo} ha sido reprogramada correctamente.`,
+        })
 
-      return true
+        return true
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -216,6 +276,7 @@ export default function CalendarPage() {
               onClearFilters={clearFilters}
               isOpen={showFilters}
               onToggle={setShowFilters}
+              eventCounts={eventCounts}
             />
           </div>
 
