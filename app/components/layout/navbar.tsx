@@ -214,22 +214,27 @@ export function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align='end' className='w-56'>
-                <DropdownMenuItem>
-                  <MaterialIcon
-                    name='account_circle'
-                    className='mr-2 text-lg'
-                  />
-                  Perfil
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <MaterialIcon name='settings' className='mr-2 text-lg' />
-                  Configuración
-                </DropdownMenuItem>
+                <Link href='/perfil'>
+                  <DropdownMenuItem className='cursor-pointer'>
+                    <MaterialIcon
+                      name='account_circle'
+                      className='mr-2 text-lg'
+                    />
+                    Mi Perfil
+                  </DropdownMenuItem>
+                </Link>
+                <Link href='/settings/notifications'>
+                  <DropdownMenuItem className='cursor-pointer'>
+                    <MaterialIcon name='settings' className='mr-2 text-lg' />
+                    Configuración
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className='text-destructive'
+                  className='text-destructive cursor-pointer'
                   onClick={handleLogout}
                 >
+                  <MaterialIcon name='logout' className='mr-2 text-lg' />
                   Cerrar sesión
                 </DropdownMenuItem>
               </DropdownMenuContent>

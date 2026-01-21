@@ -15,17 +15,19 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user's organization
-    const { data: orgUser, error: orgError } = await supabase
+    // Get user's primary organization
+    const { data: orgUsers, error: orgError } = await supabase
       .from('organization_users')
       .select('organization_id, role')
       .eq('user_id', user.id)
-      .single()
+      .order('is_primary', { ascending: false })
+      .limit(1)
 
-    if (orgError || !orgUser) {
+    if (orgError || !orgUsers || orgUsers.length === 0) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
     }
-
+    
+    const orgUser = orgUsers[0]
     const staffId = params.id
 
     if (!staffId) {
@@ -127,16 +129,19 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user's organization and verify permissions
-    const { data: orgUser, error: orgError } = await supabase
+    // Get user's primary organization
+    const { data: orgUsers, error: orgError } = await supabase
       .from('organization_users')
       .select('organization_id, role')
       .eq('user_id', user.id)
-      .single()
+      .order('is_primary', { ascending: false })
+      .limit(1)
 
-    if (orgError || !orgUser) {
+    if (orgError || !orgUsers || orgUsers.length === 0) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
     }
+    
+    const orgUser = orgUsers[0]
 
     // Check if user has permission to delete staff (admin or owner)
     if (!['owner', 'admin'].includes(orgUser.role)) {
