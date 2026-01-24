@@ -1,49 +1,22 @@
 import { NextResponse } from 'next/server'
-import {
-  getSupabaseRouteClientWithAuth,
-  getSupabaseAdminClient
-} from '@/app/lib/supabaseServer'
+import { mockDataStore } from '@/src/data/mock-data'
 
 export async function POST(request: Request) {
   try {
-    const supabase = getSupabaseRouteClientWithAuth(request)
-    const {
-      data: { user },
-      error
-    } = await supabase.auth.getUser()
-    if (error || !user)
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    const admin = getSupabaseAdminClient()
-    const body = await request.json().catch(() => ({}))
+    const body = await request.json()
     const { id } = body || {}
 
-    if (id) {
-      const { error: updErr } = await admin
-        .from('notifications')
-        .update({ read_at: new Date().toISOString() })
-        .eq('id', id)
-        .eq('user_id', user.id)
-
-      if (updErr)
-        return NextResponse.json({ error: updErr.message }, { status: 400 })
-      return NextResponse.json({ ok: true })
+    if (!id) {
+      return NextResponse.json({ error: 'id is required' }, { status: 400 })
     }
 
-    const { error: allErr } = await admin
-      .from('notifications')
-      .update({ read_at: new Date().toISOString() })
-      .eq('user_id', user.id)
-      .is('read_at', null)
+    const notifIndex = mockDataStore.notifications.findIndex(n => n.id === id)
+    if (notifIndex !== -1) {
+      mockDataStore.notifications[notifIndex].read = true
+    }
 
-    if (allErr)
-      return NextResponse.json({ error: allErr.message }, { status: 400 })
-
-    return NextResponse.json({ ok: true })
+    return NextResponse.json({ success: true })
   } catch (e: any) {
-    return NextResponse.json(
-      { error: e.message || 'Unexpected error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: e.message || 'Unexpected error' }, { status: 500 })
   }
 }

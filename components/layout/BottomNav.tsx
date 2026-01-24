@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, Users, Package, Calendar, Settings } from 'lucide-react';
+import { Home, Users, Package, Calendar, BookOpen, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -8,8 +8,9 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { href: '/', icon: Home, label: 'Inicio' },
   { href: '/clientes', icon: Users, label: 'Clientes' },
+  { href: '/calendario', icon: Calendar, label: 'Calendario' },
   { href: '/productos/academia', icon: Package, label: 'Productos' },
-  { href: '/productos/clases', icon: Calendar, label: 'Clases' },
+  { href: '/productos/clases', icon: BookOpen, label: 'Clases' },
   { href: '/configuracion', icon: Settings, label: 'Ajustes' },
 ];
 

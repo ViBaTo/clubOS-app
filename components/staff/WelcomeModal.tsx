@@ -9,12 +9,14 @@ import { Users, Award, BookOpen, Calendar, ArrowRight, CheckCircle } from 'lucid
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
+type KnownRole = 'owner' | 'admin' | 'instructor' | 'reception' | 'gestor' | 'profesor'
+
 interface WelcomeModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   userInfo: {
     name: string
-    role: 'gestor' | 'admin' | 'profesor'
+    role: string // Accept any string from database
     organizationName: string
     specialties?: string[]
   }
@@ -23,9 +25,30 @@ interface WelcomeModalProps {
   onPasswordSubmit?: (password: string) => Promise<void>
 }
 
-const roleInfo = {
-  gestor: {
-    title: 'Manager',
+// Default role info for unknown roles
+const defaultRoleInfo = {
+  title: 'Staff Member',
+  description: 'Welcome to the team! You have been granted access to the system.',
+  color: 'bg-gray-100 text-gray-800 border-gray-200',
+  icon: Users,
+  features: [
+    'Access assigned features',
+    'View your schedule',
+    'Manage your tasks',
+    'Collaborate with team members'
+  ]
+}
+
+const roleInfo: Record<KnownRole, {
+  title: string
+  description: string
+  color: string
+  icon: typeof Award
+  features: string[]
+}> = {
+  // New English roles
+  owner: {
+    title: 'Owner',
     description: 'You have full access to manage all aspects of the club',
     color: 'bg-purple-100 text-purple-800 border-purple-200',
     icon: Award,
@@ -46,6 +69,43 @@ const roleInfo = {
       'Schedule and organize classes',
       'Handle daily operations',
       'View member analytics'
+    ]
+  },
+  instructor: {
+    title: 'Instructor',
+    description: 'You can manage your classes and assigned members',
+    color: 'bg-green-100 text-green-800 border-green-200',
+    icon: BookOpen,
+    features: [
+      'Manage your assigned classes',
+      'Track student attendance',
+      'Update class schedules',
+      'View your class analytics'
+    ]
+  },
+  reception: {
+    title: 'Reception',
+    description: 'You can manage check-ins, bookings, and front desk operations',
+    color: 'bg-orange-100 text-orange-800 border-orange-200',
+    icon: Users,
+    features: [
+      'Check-in members',
+      'Manage reservations and bookings',
+      'Handle front desk inquiries',
+      'View daily schedules'
+    ]
+  },
+  // Legacy Spanish roles (for backwards compatibility)
+  gestor: {
+    title: 'Manager',
+    description: 'You have full access to manage all aspects of the club',
+    color: 'bg-purple-100 text-purple-800 border-purple-200',
+    icon: Award,
+    features: [
+      'Manage staff and team members',
+      'View financial reports and analytics',
+      'Configure club settings and policies',
+      'Access all system features'
     ]
   },
   profesor: {
@@ -76,7 +136,9 @@ export function WelcomeModal({
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [passwordSaved, setPasswordSaved] = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
-  const role = roleInfo[userInfo.role]
+  
+  // Get role info with fallback for unknown roles
+  const role = roleInfo[userInfo.role as KnownRole] || defaultRoleInfo
   const RoleIcon = role.icon
 
   const handlePasswordSave = async () => {

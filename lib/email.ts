@@ -12,13 +12,19 @@ import AdminNotificationEmail from '@/emails/AdminNotification'
 import InvitationApprovedEmail from '@/emails/InvitationApproved'
 import InvitationRejectedEmail from '@/emails/InvitationRejected'
 
-// Initialize Resend with fallback handling
-const resendApiKey = process.env.RESEND_API_KEY
-if (!resendApiKey && process.env.NODE_ENV !== 'development') {
-  throw new Error('RESEND_API_KEY is required in production')
+// Initialize Resend lazily to avoid build-time errors
+let resend: Resend | null = null
+
+function getResendClient(): Resend | null {
+  if (resend) return resend
+  
+  const resendApiKey = process.env.RESEND_API_KEY
+  if (resendApiKey) {
+    resend = new Resend(resendApiKey)
+  }
+  return resend
 }
 
-const resend = resendApiKey ? new Resend(resendApiKey) : null
 const isDevelopment = process.env.NODE_ENV === 'development'
 
 // Email configuration (fallback to defaults)
@@ -32,7 +38,8 @@ const EMAIL_NOREPLY = process.env.EMAIL_NOREPLY || 'noreply@vibato.io'
 export async function sendInvitationReceivedEmail(data: InvitationReceivedEmailData): Promise<EmailResult> {
   const subject = `Solicitud de acceso recibida - ${data.organizationName}`
   
-  if (isDevelopment || !resend) {
+  const client = getResendClient()
+  if (isDevelopment || !client) {
     console.log('📧 [DEV] Invitation Received Email:', { 
       to: data.email, 
       subject,
@@ -43,7 +50,7 @@ export async function sendInvitationReceivedEmail(data: InvitationReceivedEmailD
   }
 
   try {
-    const result = await resend.emails.send({
+    const result = await client.emails.send({
       from: `${EMAIL_FROM_NAME} <${EMAIL_NOREPLY}>`,
       to: data.email,
       subject,
@@ -83,7 +90,8 @@ export async function sendInvitationReceivedEmail(data: InvitationReceivedEmailD
 export async function sendAdminNotificationEmail(data: AdminNotificationEmailData): Promise<EmailResult> {
   const subject = `Nueva solicitud de acceso - ${data.organizationName}`
   
-  if (isDevelopment || !resend) {
+  const client = getResendClient()
+  if (isDevelopment || !client) {
     console.log('📧 [DEV] Admin Notification Email:', { 
       to: data.adminEmail, 
       subject,
@@ -94,7 +102,7 @@ export async function sendAdminNotificationEmail(data: AdminNotificationEmailDat
   }
 
   try {
-    const result = await resend.emails.send({
+    const result = await client.emails.send({
       from: `${EMAIL_FROM_NAME} <${EMAIL_NOREPLY}>`,
       to: data.adminEmail,
       subject,
@@ -134,7 +142,8 @@ export async function sendAdminNotificationEmail(data: AdminNotificationEmailDat
 export async function sendInvitationApprovedEmail(data: InvitationApprovedEmailData): Promise<EmailResult> {
   const subject = `¡Solicitud aprobada! - ${data.organizationName}`
   
-  if (isDevelopment || !resend) {
+  const client = getResendClient()
+  if (isDevelopment || !client) {
     console.log('📧 [DEV] Invitation Approved Email:', { 
       to: data.email, 
       subject,
@@ -145,7 +154,7 @@ export async function sendInvitationApprovedEmail(data: InvitationApprovedEmailD
   }
 
   try {
-    const result = await resend.emails.send({
+    const result = await client.emails.send({
       from: `${EMAIL_FROM_NAME} <${EMAIL_NOREPLY}>`,
       to: data.email,
       subject,
@@ -185,7 +194,8 @@ export async function sendInvitationApprovedEmail(data: InvitationApprovedEmailD
 export async function sendInvitationRejectedEmail(data: InvitationRejectedEmailData): Promise<EmailResult> {
   const subject = `Solicitud de acceso - ${data.organizationName}`
   
-  if (isDevelopment || !resend) {
+  const client = getResendClient()
+  if (isDevelopment || !client) {
     console.log('📧 [DEV] Invitation Rejected Email:', { 
       to: data.email, 
       subject,
@@ -196,7 +206,7 @@ export async function sendInvitationRejectedEmail(data: InvitationRejectedEmailD
   }
 
   try {
-    const result = await resend.emails.send({
+    const result = await client.emails.send({
       from: `${EMAIL_FROM_NAME} <${EMAIL_NOREPLY}>`,
       to: data.email,
       subject,

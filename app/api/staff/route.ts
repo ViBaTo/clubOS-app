@@ -13,21 +13,25 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user's organization
-    const { data: orgUser, error: orgError } = await supabase
+    // Get user's primary organization (or first one if no primary)
+    const { data: orgUsers, error: orgError } = await supabase
       .from('organization_users')
-      .select('organization_id, role')
+      .select('organization_id, role, is_primary')
       .eq('user_id', user.id)
-      .single()
+      .order('is_primary', { ascending: false })
+      .order('created_at', { ascending: true })
 
-    if (orgError || !orgUser) {
+    if (orgError || !orgUsers || orgUsers.length === 0) {
       console.log('Staff API Org Error:', { 
         userId: user.id, 
         orgError: orgError?.message, 
-        hasOrgUser: !!orgUser 
+        count: orgUsers?.length 
       })
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
     }
+
+    // Use primary organization or first one
+    const orgUser = orgUsers[0]
 
     // Parse URL parameters
     const url = new URL(request.url)

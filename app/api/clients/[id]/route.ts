@@ -1,38 +1,19 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseRouteClientWithAuth } from '@/app/lib/supabaseServer'
+import { mockDataStore, mockCategories } from '@/src/data/mock-data'
 
 export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = getSupabaseRouteClientWithAuth(_request)
-    const {
-      data: { user }
-    } = await supabase.auth.getUser()
-    if (!user)
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
     const { id } = await context.params
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .eq('id', id)
-      .single()
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 404 })
-
-    let category_name: string | null = null
-    if (data?.categoria_id) {
-      const { data: cat, error: catError } = await supabase
-        .from('categories')
-        .select('name')
-        .eq('id', data.categoria_id)
-        .maybeSingle()
-      if (!catError) category_name = cat?.name ?? null
+    const client = mockDataStore.clients.find(c => c.id === id)
+    
+    if (!client) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ client: { ...data, category_name } })
+    return NextResponse.json({ client })
   } catch (e: any) {
     return NextResponse.json(
       { error: e.message || 'Unexpected error' },
@@ -46,15 +27,13 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = getSupabaseRouteClientWithAuth(request)
-    const {
-      data: { user }
-    } = await supabase.auth.getUser()
-    if (!user)
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
     const { id } = await context.params
     const body = await request.json()
+
+    const clientIndex = mockDataStore.clients.findIndex(c => c.id === id)
+    if (clientIndex === -1) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+    }
 
     const updatableFields = [
       'full_name',
@@ -70,10 +49,12 @@ export async function PATCH(
       'pending_balance',
       'last_class_date'
     ]
+
     const payload: Record<string, any> = {}
     for (const key of updatableFields) {
       if (key in body) payload[key] = body[key]
     }
+
     if (Object.keys(payload).length === 0) {
       return NextResponse.json(
         { error: 'No valid fields to update' },
@@ -81,16 +62,20 @@ export async function PATCH(
       )
     }
 
-    const { data, error } = await supabase
-      .from('clients')
-      .update(payload)
-      .eq('id', id)
-      .select('*')
-      .single()
+    // Update category_name if categoria_id changed
+    if (payload.categoria_id) {
+      const category = mockCategories.find(c => c.id === payload.categoria_id)
+      payload.category_name = category?.name ?? null
+    }
 
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    return NextResponse.json({ client: data })
+    // Update the client
+    mockDataStore.clients[clientIndex] = {
+      ...mockDataStore.clients[clientIndex],
+      ...payload,
+      updated_at: new Date().toISOString()
+    }
+
+    return NextResponse.json({ client: mockDataStore.clients[clientIndex] })
   } catch (e: any) {
     return NextResponse.json(
       { error: e.message || 'Unexpected error' },
@@ -100,21 +85,19 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: Request,
+  _request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = getSupabaseRouteClientWithAuth(request)
-    const {
-      data: { user }
-    } = await supabase.auth.getUser()
-    if (!user)
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
     const { id } = await context.params
-    const { error } = await supabase.from('clients').delete().eq('id', id)
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 400 })
+    const clientIndex = mockDataStore.clients.findIndex(c => c.id === id)
+    
+    if (clientIndex === -1) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+    }
+
+    mockDataStore.clients.splice(clientIndex, 1)
+
     return NextResponse.json({ ok: true })
   } catch (e: any) {
     return NextResponse.json(
