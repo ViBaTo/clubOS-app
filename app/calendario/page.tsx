@@ -20,7 +20,7 @@ import { useCalendarSearch } from "@/src/hooks/use-calendar-search"
 import { useCalendarEvents } from "@/src/hooks/use-calendar-events"
 
 // Set to true to use real API data, false to use mock data
-const USE_REAL_API = process.env.NEXT_PUBLIC_USE_REAL_CALENDAR_API === 'true'
+const USE_REAL_API = true
 
 const MaterialIcon = ({ name, className = "" }: { name: string; className?: string }) => (
   <span className={`material-symbols-outlined ${className}`}>{name}</span>
