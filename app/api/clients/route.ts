@@ -10,6 +10,19 @@ export async function GET(request: Request) {
     if (!user)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    // Get user's primary organization
+    const { data: orgUser } = await supabase
+      .from('organization_users')
+      .select('organization_id')
+      .eq('user_id', user.id)
+      .order('is_primary', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (!orgUser?.organization_id) {
+      return NextResponse.json({ error: 'No organization found' }, { status: 400 })
+    }
+
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') || undefined
     const q = searchParams.get('q') || ''
@@ -17,6 +30,7 @@ export async function GET(request: Request) {
     let query = supabase
       .from('clients')
       .select('*')
+      .eq('organization_id', orgUser.organization_id)
       .order('created_at', { ascending: false })
     if (status && status !== 'all') query = query.eq('status', status)
     if (q) query = query.ilike('full_name', `%${q}%`)

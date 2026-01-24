@@ -10,6 +10,9 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { useCurrentUser } from '@/app/lib/auth'
 import { getSupabaseClient } from '@/app/lib/supabaseClient'
+import { Sidebar } from '@/app/components/layout/sidebar'
+import { Navbar } from '@/app/components/layout/navbar'
+import { BottomNav } from '@/components/layout/BottomNav'
 
 const MaterialIcon = ({
   name,
@@ -91,13 +94,23 @@ export default function PerfilPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Get the access token from the current session
+        const supabase = getSupabaseClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!session?.access_token) {
+          router.push('/login')
+          return
+        }
+
         const res = await fetch('/api/user/organizations', { 
           cache: 'no-store',
-          credentials: 'include'
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
         })
         if (!res.ok) {
           if (res.status === 401) {
-            // Only redirect to login if we're sure user is not authenticated
             router.push('/login')
             return
           }
@@ -115,11 +128,11 @@ export default function PerfilPage() {
 
     // Wait for auth check to complete
     if (!userLoading) {
-      if (!user) {
-        // Double-check with API before redirecting
+      if (user) {
         fetchData()
       } else {
-        fetchData()
+        // No user from hook, redirect to login
+        router.push('/login')
       }
     }
   }, [user, userLoading, router])
@@ -127,9 +140,17 @@ export default function PerfilPage() {
   const handleSetPrimary = async (orgId: string) => {
     setSettingPrimary(orgId)
     try {
+      const supabase = getSupabaseClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) return
+
       const res = await fetch('/api/user/organizations', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: JSON.stringify({ organization_id: orgId })
       })
       
@@ -162,23 +183,36 @@ export default function PerfilPage() {
 
   if (loading || userLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <MaterialIcon name="progress_activity" className="text-2xl animate-spin" />
-          <span>Cargando perfil...</span>
+      <div className="flex h-screen bg-[#F1F5F9]">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Navbar />
+          <main className="flex-1 flex items-center justify-center">
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <MaterialIcon name="progress_activity" className="text-2xl animate-spin" />
+              <span>Cargando perfil...</span>
+            </div>
+          </main>
+          <BottomNav />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Mi Perfil</h1>
-          <p className="text-muted-foreground mt-1">Gestiona tu cuenta y tus clubes</p>
-        </div>
+    <div className="flex h-screen bg-[#F1F5F9]">
+      <Sidebar />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Navbar />
+        
+        <main className="flex-1 overflow-y-auto p-8 pb-20 md:pb-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-foreground">Mi Perfil</h1>
+              <p className="text-muted-foreground mt-1">Gestiona tu cuenta y tus clubes</p>
+            </div>
 
         {/* User Profile Card */}
         <Card className="mb-8">
@@ -415,6 +449,9 @@ export default function PerfilPage() {
             </div>
           </CardContent>
         </Card>
+          </div>
+        </main>
+        <BottomNav />
       </div>
     </div>
   )
