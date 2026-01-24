@@ -14,7 +14,7 @@ const PUBLIC_PATHS = new Set([
   '/registro/exito'
 ])
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // In development, allow all requests to avoid false redirects since
