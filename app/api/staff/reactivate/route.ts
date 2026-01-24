@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseRouteClientWithAuth, getSupabaseAdminClient } from '@/app/lib/supabaseServer'
+import { getAppUrl } from '@/lib/utils'
 
 export async function POST(request: Request) {
   try {
@@ -135,8 +136,8 @@ export async function POST(request: Request) {
         welcome_message: 'Your account has been reactivated. Please complete your signup.'
       }
 
-      // Get app URL from environment
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      // Get app URL from environment or request headers
+      const appUrl = getAppUrl(request)
 
       // Send new invitation using Supabase Auth
       const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(

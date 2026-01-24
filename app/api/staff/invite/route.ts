@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseRouteClientWithAuth, getSupabaseAdminClient } from '@/app/lib/supabaseServer'
+import { getAppUrl } from '@/lib/utils'
 
 export async function POST(request: Request) {
   try {
@@ -134,51 +135,142 @@ export async function POST(request: Request) {
       welcome_message: welcomeMessage || null
     }
 
-    // Get app URL from environment
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    // Get app URL from environment or request headers
+    const appUrl = getAppUrl(request)
 
-    // Send invitation using Supabase Auth
-    const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
-      email,
-      {
-        redirectTo: `${appUrl}/auth/callback`,
-        data: inviteMetadata
+    // Check if user already exists in Supabase Auth
+    let existingAuthUser: any = null
+    try {
+      const { data: userData } = await adminClient.auth.admin.getUserByEmail(email)
+      existingAuthUser = userData?.user
+    } catch (e) {
+      // User doesn't exist, which is fine
+      console.log('User does not exist in Auth, will create new invitation')
+    }
+    
+    let inviteData: any = null
+    let inviteError: any = null
+
+    if (existingAuthUser) {
+      // User already exists - update their metadata and add to organization
+      console.log('User already exists in Auth, updating metadata and organization access...')
+      
+      // Update user metadata with invitation info
+      const { error: updateError } = await adminClient.auth.admin.updateUserById(
+        existingAuthUser.id,
+        {
+          user_metadata: {
+            ...existingAuthUser.user_metadata,
+            ...inviteMetadata
+          }
+        }
+      )
+
+      if (updateError) {
+        console.error('Failed to update user metadata:', updateError)
       }
-    )
 
-    if (inviteError) {
-      console.error('Supabase invitation error:', {
-        message: inviteError.message,
-        status: inviteError.status,
-        statusText: inviteError.statusText,
-        error: inviteError
-      })
-      // If invitation fails, clean up the staff record
+      // Add user to organization_users if not already there
+      const { data: existingOrgUser } = await adminClient
+        .from('organization_users')
+        .select('id')
+        .eq('user_id', existingAuthUser.id)
+        .eq('organization_id', orgUser.organization_id)
+        .maybeSingle()
+
+      if (!existingOrgUser) {
+        const roleMapping = {
+          'gestor': 'owner' as const,
+          'admin': 'admin' as const,
+          'profesor': 'staff' as const
+        }
+
+        await adminClient
+          .from('organization_users')
+          .insert({
+            organization_id: orgUser.organization_id,
+            user_id: existingAuthUser.id,
+            role: roleMapping[role as keyof typeof roleMapping] || 'staff'
+          })
+      }
+
+      // Update staff record to link to existing user
       await adminClient
         .from('club_staff')
-        .delete()
+        .update({
+          user_id: existingAuthUser.id,
+          status: 'active',
+          activated_at: new Date().toISOString()
+        })
         .eq('id', staffRecord.id)
 
-      return NextResponse.json({ 
-        error: `Failed to send invitation: ${inviteError.message}` 
-      }, { status: 500 })
+      // Generate magic link for existing user
+      const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+        type: 'magiclink',
+        email: email,
+        options: {
+          redirectTo: `${appUrl}/auth/callback`
+        }
+      })
+
+      if (linkError) {
+        console.error('Failed to generate magic link:', linkError)
+        // Don't fail - the user can still log in normally
+      } else {
+        inviteData = { user: existingAuthUser, link: linkData }
+        console.log('Magic link generated for existing user')
+      }
+    } else {
+      // New user - send invitation using Supabase Auth
+      const result = await adminClient.auth.admin.inviteUserByEmail(
+        email,
+        {
+          redirectTo: `${appUrl}/auth/callback`,
+          data: inviteMetadata
+        }
+      )
+      inviteData = result.data
+      inviteError = result.error
+
+      if (inviteError) {
+        console.error('Supabase invitation error:', {
+          message: inviteError.message,
+          status: inviteError.status,
+          statusText: inviteError.statusText,
+          error: inviteError
+        })
+        // If invitation fails, clean up the staff record
+        await adminClient
+          .from('club_staff')
+          .delete()
+          .eq('id', staffRecord.id)
+
+        return NextResponse.json({ 
+          error: `Failed to send invitation: ${inviteError.message}` 
+        }, { status: 500 })
+      }
     }
 
     // Return success response
+    const isExistingUser = !!existingAuthUser
     return NextResponse.json({
       success: true,
-      message: `Invitation sent successfully to ${email}`,
+      message: isExistingUser 
+        ? `${fullName} has been re-added to your team. They can log in with their existing account.`
+        : `Invitation sent successfully to ${email}`,
       staff: {
         id: staffRecord.id,
         email: staffRecord.email,
         full_name: staffRecord.full_name,
         role: staffRecord.role,
-        status: staffRecord.status,
-        invited_at: staffRecord.invited_at
+        status: isExistingUser ? 'active' : staffRecord.status,
+        invited_at: staffRecord.invited_at,
+        user_id: existingAuthUser?.id || inviteData?.user?.id || null
       },
       invitation: {
-        user: inviteData.user,
-        sent_at: new Date().toISOString()
+        user: inviteData?.user || existingAuthUser,
+        sent_at: new Date().toISOString(),
+        is_existing_user: isExistingUser
       }
     })
 

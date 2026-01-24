@@ -3,7 +3,7 @@ import { getSupabaseRouteClientWithAuth, getSupabaseAdminClient } from '@/app/li
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = getSupabaseRouteClientWithAuth(request)
@@ -28,7 +28,7 @@ export async function GET(
     }
     
     const orgUser = orgUsers[0]
-    const staffId = params.id
+    const { id: staffId } = await params
 
     if (!staffId) {
       return NextResponse.json({ error: 'Staff ID is required' }, { status: 400 })
@@ -102,7 +102,7 @@ export async function GET(
         can_edit_basic: isSelf || canViewAll,
         can_change_role: canViewAll,
         can_deactivate: canViewAll && !isSelf,
-        can_delete: canViewAll && staffRecord.status === 'pending'
+        can_delete: canViewAll && !isSelf
       }
     })
 
@@ -117,7 +117,7 @@ export async function GET(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = getSupabaseRouteClientWithAuth(request)
@@ -148,7 +148,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const staffId = params.id
+    const { id: staffId } = await params
 
     if (!staffId) {
       return NextResponse.json({ error: 'Staff ID is required' }, { status: 400 })
@@ -166,13 +166,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Staff member not found' }, { status: 404 })
     }
 
-    // Only allow deletion of pending staff members (invitations not yet accepted)
-    if (staffRecord.status !== 'pending') {
-      return NextResponse.json({ 
-        error: 'Can only delete pending invitations. Use deactivate for active staff members.' 
-      }, { status: 400 })
-    }
-
     // Prevent self-deletion
     if (staffRecord.user_id === user.id) {
       return NextResponse.json({ 
@@ -180,7 +173,21 @@ export async function DELETE(
       }, { status: 400 })
     }
 
-    // Delete the staff record
+    // Remove from organization_users table first (if exists) to revoke access
+    if (staffRecord.user_id) {
+      const { error: removeAccessError } = await adminClient
+        .from('organization_users')
+        .delete()
+        .eq('user_id', staffRecord.user_id)
+        .eq('organization_id', orgUser.organization_id)
+
+      if (removeAccessError) {
+        console.error('Failed to remove organization access:', removeAccessError)
+        // Continue with deletion even if org access removal failed
+      }
+    }
+
+    // Delete the staff record (works for any status: pending, active, or inactive)
     const { error: deleteError } = await adminClient
       .from('club_staff')
       .delete()
@@ -196,7 +203,7 @@ export async function DELETE(
     // Return success response
     return NextResponse.json({
       success: true,
-      message: `Pending invitation for ${staffRecord.full_name} has been deleted`,
+      message: `${staffRecord.full_name} has been permanently deleted from your team. You can re-invite them if needed.`,
       deleted_staff: {
         id: staffRecord.id,
         email: staffRecord.email,

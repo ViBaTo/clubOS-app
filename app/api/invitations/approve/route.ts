@@ -4,6 +4,7 @@ import {
   getSupabaseAdminClient
 } from '@/app/lib/supabaseServer';
 import { sendInvitationApprovedEmail } from '@/lib/email';
+import { getAppUrl } from '@/lib/utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -237,7 +238,7 @@ export async function POST(request: NextRequest) {
     try {
       console.log('📧 Sending approval email...');
       const organizationName = (invitation.organizations as any)?.name || 'la organización';
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const baseUrl = getAppUrl(request);
       
       await sendInvitationApprovedEmail({
         email: invitation.email,

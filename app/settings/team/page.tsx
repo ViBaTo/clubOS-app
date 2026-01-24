@@ -214,6 +214,31 @@ export default function TeamPage() {
     }
   }
 
+  const handleDelete = async (staffId: string, name: string, email: string) => {
+    if (!confirm(`Are you sure you want to delete ${name}? This will permanently remove them from your team and they will need to be re-invited to regain access.`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/staff/${staffId}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        toast({ 
+          title: 'Success', 
+          description: `${name} has been deleted. You can now re-invite them if needed.` 
+        })
+        fetchStaffData()
+      } else {
+        const error = await response.json()
+        toast({ title: 'Error', description: error.message, variant: 'destructive' })
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' })
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -372,12 +397,26 @@ export default function TeamPage() {
                           <DropdownMenuItem onClick={() => handleDeactivate(member.id, member.full_name)}>
                             Deactivate
                           </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(member.id, member.full_name, member.email)}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            Delete
+                          </DropdownMenuItem>
                         </>
                       )}
                       {member.status === 'inactive' && (
-                        <DropdownMenuItem onClick={() => handleReactivate(member.id, member.full_name)}>
-                          Reactivate
-                        </DropdownMenuItem>
+                        <>
+                          <DropdownMenuItem onClick={() => handleReactivate(member.id, member.full_name)}>
+                            Reactivate
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(member.id, member.full_name, member.email)}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            Delete
+                          </DropdownMenuItem>
+                        </>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>

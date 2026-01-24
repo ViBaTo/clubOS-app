@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdminClient } from '@/app/lib/supabaseServer';
+import { getAppUrl } from '@/lib/utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -201,7 +202,7 @@ export async function POST(request: NextRequest) {
           .in('role', ['owner', 'admin']);
 
         if (adminUsers && adminUsers.length > 0) {
-          const approvalLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/configuracion/solicitudes-acceso`;
+          const approvalLink = `${getAppUrl(request)}/configuracion/solicitudes-acceso`;
           
           for (const adminUser of adminUsers) {
             const adminEmail = (adminUser as any).users?.email;

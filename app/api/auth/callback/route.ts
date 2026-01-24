@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdminClient } from '@/app/lib/supabaseServer'
+import { getAppUrl } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
     const error = url.searchParams.get('error')
     const errorDescription = url.searchParams.get('error_description')
     const type = url.searchParams.get('type')
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const appUrl = getAppUrl(request)
 
     console.log('Auth callback received:', {
       hasCode: !!code,
@@ -175,7 +176,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Auth callback error:', error)
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const appUrl = getAppUrl(request)
     return NextResponse.redirect(`${appUrl}/login?error=callback_failed`)
   }
 }
