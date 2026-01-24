@@ -1,74 +1,51 @@
-// ============================================================================
-// MOCK SUPABASE SERVER CLIENT FOR DEV BRANCH
-// This file provides mock implementations that don't require real Supabase
-// ============================================================================
-
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
-import { mockCurrentUser } from '@/src/data/mock-data'
 
-// Mock server client that simulates Supabase server-side interface
-function createMockServerClient() {
-  const mockClient: any = {
-    auth: {
-      getUser: async () => ({
-        data: {
-          user: {
-            id: mockCurrentUser.id,
-            email: mockCurrentUser.email,
-            user_metadata: {
-              full_name: mockCurrentUser.full_name,
-            },
-          },
-        },
-        error: null,
-      }),
-      getSession: async () => ({
-        data: {
-          session: {
-            user: {
-              id: mockCurrentUser.id,
-              email: mockCurrentUser.email,
-            },
-            access_token: 'mock-access-token',
-          },
-        },
-        error: null,
-      }),
-    },
-    from: (table: string) => createMockQueryBuilder(table),
-  }
-  return mockClient
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) throw new Error(`Missing env ${name}`)
+  return value
 }
 
-// Mock query builder
-function createMockQueryBuilder(table: string) {
-  const builder: any = {
-    select: () => builder,
-    insert: () => builder,
-    update: () => builder,
-    delete: () => builder,
-    eq: () => builder,
-    neq: () => builder,
-    in: () => builder,
-    is: () => builder,
-    ilike: () => builder,
-    or: () => builder,
-    order: () => builder,
-    limit: () => builder,
-    range: () => builder,
-    single: () => builder,
-    maybeSingle: () => builder,
-    then: (resolve: any) => resolve({ data: [], error: null }),
-  }
-  return builder
-}
-
-export function getSupabaseAdminClient(): any {
-  return createMockServerClient()
+export function getSupabaseAdminClient(): SupabaseClient {
+  const url = requireEnv('NEXT_PUBLIC_SUPABASE_URL')
+  const serviceKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY')
+  return createClient(url, serviceKey)
 }
 
 export function getSupabaseRouteClientWithAuth(
   request: Request | NextRequest
-): any {
-  return createMockServerClient()
+): SupabaseClient {
+  const url = requireEnv('NEXT_PUBLIC_SUPABASE_URL')
+  const anon = requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  let authorization = request.headers.get('authorization') || ''
+
+  // Fallback: extract access token from Supabase auth cookie if Authorization header is missing.
+  if (!authorization) {
+    const cookieHeader = request.headers.get('cookie') || ''
+    // Find cookie like sb-<project-ref>-auth-token
+    const match = cookieHeader
+      .split(';')
+      .map((c) => c.trim())
+      .find((c) => {
+        const name = c.split('=')[0] || ''
+        return name.includes('sb-') && name.endsWith('-auth-token')
+      })
+    if (match) {
+      const value = match.split('=')[1] || ''
+      try {
+        const decoded = decodeURIComponent(value)
+        const parsed = JSON.parse(decoded)
+        const token =
+          parsed?.currentSession?.access_token || parsed?.access_token
+        if (token) authorization = `Bearer ${token}`
+      } catch (_) {
+        // ignore parsing errors
+      }
+    }
+  }
+
+  return createClient(url, anon, {
+    global: { headers: authorization ? { Authorization: authorization } : {} }
+  })
 }

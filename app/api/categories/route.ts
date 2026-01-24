@@ -1,14 +1,24 @@
 import { NextResponse } from 'next/server'
-import { mockCategories } from '@/src/data/mock-data'
+import { getSupabaseRouteClientWithAuth } from '@/app/lib/supabaseServer'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // Sort categories by name
-    const categories = [...mockCategories]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map(c => ({ id: c.id, name: c.name }))
+    const supabase = getSupabaseRouteClientWithAuth(request)
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+    if (!user)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    return NextResponse.json({ categories })
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name')
+      .order('name', { ascending: true })
+
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 400 })
+
+    return NextResponse.json({ categories: data || [] })
   } catch (e: any) {
     return NextResponse.json(
       { error: e.message || 'Unexpected error' },
