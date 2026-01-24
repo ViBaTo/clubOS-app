@@ -129,17 +129,81 @@ export async function GET(request: NextRequest) {
     const isStaffInvitation = userMetadata.organization_id && userMetadata.role
 
     if (isStaffInvitation) {
-      // This is a staff invitation - the database trigger should have already:
-      // 1. Updated club_staff record status to 'active'
-      // 2. Set user_id and activated_at
-      // 3. Added to organization_users table
+      // Use admin client to link user to club_staff and organization_users
+      const adminClient = getSupabaseAdminClient()
+      const organizationId = userMetadata.organization_id
+      const userRole = userMetadata.role
       
-      console.log('Staff invitation accepted:', {
+      console.log('Staff invitation accepted, linking user:', {
         userId: user.id,
         email: user.email,
-        organizationId: userMetadata.organization_id,
-        role: userMetadata.role
+        organizationId,
+        role: userRole
       })
+
+      try {
+        // 1. Find and update the club_staff record
+        const { data: staffRecord, error: staffFindError } = await adminClient
+          .from('club_staff')
+          .select('id, status')
+          .eq('email', user.email!)
+          .eq('organization_id', organizationId)
+          .maybeSingle()
+
+        if (staffRecord && !staffFindError) {
+          // Update club_staff with user_id and activate
+          const { error: staffUpdateError } = await adminClient
+            .from('club_staff')
+            .update({
+              user_id: user.id,
+              status: 'active',
+              activated_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', staffRecord.id)
+
+          if (staffUpdateError) {
+            console.error('Failed to update club_staff:', staffUpdateError)
+          } else {
+            console.log('club_staff updated successfully')
+          }
+
+          // 2. Check if organization_users record exists
+          const { data: existingOrgUser } = await adminClient
+            .from('organization_users')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('organization_id', organizationId)
+            .maybeSingle()
+
+          if (!existingOrgUser) {
+            // Create organization_users record
+            const { error: orgUserError } = await adminClient
+              .from('organization_users')
+              .insert({
+                user_id: user.id,
+                organization_id: organizationId,
+                role: userRole,
+                is_primary: true,
+                staff_id: staffRecord.id,
+                joined_via: 'invitation'
+              })
+
+            if (orgUserError) {
+              console.error('Failed to create organization_users:', orgUserError)
+            } else {
+              console.log('organization_users created successfully')
+            }
+          } else {
+            console.log('organization_users already exists')
+          }
+        } else {
+          console.warn('No club_staff record found for email:', user.email)
+        }
+      } catch (linkError) {
+        console.error('Error linking staff invitation:', linkError)
+        // Don't fail the auth - let the user in and they can contact support
+      }
     }
 
     // Determine redirect URL based on user type
