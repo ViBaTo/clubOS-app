@@ -51,7 +51,8 @@ export async function POST(request: NextRequest) {
       httpOnly: false, // Needs to be accessible by client
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7 // 7 days
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/' // CRITICAL: Cookie must be available for all paths
     })
 
     return response
